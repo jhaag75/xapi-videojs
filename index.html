@@ -365,7 +365,7 @@
             },
             "timestamp": timeStamp 
         };
-        //send paused statement to the LRS    
+        //send completed statement to the LRS    
         ADL.XAPIWrapper.sendStatement(completedStmt, function(resp, obj){
         console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
         console.log("completed statement sent");            
@@ -532,7 +532,7 @@
             },
             "timestamp": timeStamp 
         };
-        //send muted statement to the LRS    
+        //send volume change statement to the LRS    
         ADL.XAPIWrapper.sendStatement(volChangeStmt, function(resp, obj){
         console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
         console.log("interacted volumeChange statement sent");            
@@ -619,7 +619,7 @@
             },
             "timestamp": timeStamp 
         };
-        //send muted statement to the LRS    
+        //send full screen statement to the LRS    
         ADL.XAPIWrapper.sendStatement(fullScreenTrueStmt, function(resp, obj){
         console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
         console.log("interacted statement (fullScreen true) sent"); 
@@ -696,7 +696,7 @@
             },
             "timestamp": timeStamp 
         };
-        //send muted statement to the LRS    
+        //send exit full screen statement to the LRS    
         ADL.XAPIWrapper.sendStatement(fullScreenFalseStmt, function(resp, obj){
         console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
         console.log("interacted statement (fullscreen false) sent");    
