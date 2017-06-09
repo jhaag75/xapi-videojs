@@ -27,14 +27,14 @@
 <script type="text/javascript">
     
     // ADL LRS Configuration - Basic Auth for demo purposes  
-    if(ADL.XAPIWrapper.lrs.auth == undefined)
-    var conf = {
-       "endpoint" : "https://lrs.adlnet.gov/xapi/",
-       "auth" : "Basic " + toBase64('video-profile:getout'),
-        "actor" : '{"mbox": "mailto:jason.haag.ctr@adlnet.gov","name": "Jason Haag","objectType": "Agent"}'
-    };
-
-    ADL.XAPIWrapper.changeConfig(conf); 
+    if(ADL.XAPIWrapper.lrs.auth == undefined) {
+        var conf = {
+           "endpoint" : "https://lrs.adlnet.gov/xapi/",
+           "auth" : "Basic " + toBase64('video-profile:getout'),
+            "actor" : '{"mbox": "mailto:jason.haag.ctr@adlnet.gov","name": "Jason Haag","objectType": "Agent"}'
+        };
+        ADL.XAPIWrapper.changeConfig(conf); 
+    }
     ADL.XAPIVideoProfile("vid1");
 </script>
 </body>
