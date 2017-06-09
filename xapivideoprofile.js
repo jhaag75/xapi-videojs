@@ -1,7 +1,8 @@
 (function(ADL){
 
 	var XAPIVideoProfile = function(target, src, options) {
-
+		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
+		
 	    // Global Variables
 	    var sessionID = ADL.ruuid();
 	        
@@ -70,11 +71,7 @@
 	        // prepare the xAPI initialized statement
 	        var initializedStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "http://adlnet.gov/expapi/verbs/initialized",
 	                "display": {
@@ -140,11 +137,7 @@
 	        
 	        var playedStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "https://w3id.org/xapi/video/verbs/played",
 	                "display": {
@@ -208,11 +201,7 @@
 	        
 	        var pausedStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "https://w3id.org/xapi/video/verbs/paused",
 	                "display": {
@@ -276,11 +265,7 @@
 	     
 	        var completedStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "http://adlnet.gov/expapi/verbs/completed",
 	                "display": {
@@ -363,11 +348,7 @@
 	            
 	        var seekedStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "https://w3id.org/xapi/video/verbs/seeked",
 	                "display": {
@@ -442,11 +423,7 @@
 	     
 	        var volChangeStmt = 
 	        {
-	            "actor": {
-	                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-	                "name": "Jason Haag",
-	                "objectType": "Agent"
-	            },
+	            "actor": actor,
 	            "verb": {
 	                "id": "http://adlnet.gov/expapi/verbs/interacted",
 	                "display": {
@@ -527,11 +504,7 @@
 		  
 		        var fullScreenTrueStmt = 
 		        {
-		            "actor": {
-		                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-		                "name": "Jason Haag",
-		                "objectType": "Agent"
-		            },
+		            "actor": actor,
 		            "verb": {
 		                "id": "http://adlnet.gov/expapi/verbs/interacted",
 		                "display": {
@@ -604,11 +577,7 @@
 		  
 		        var fullScreenFalseStmt = 
 		        {
-		            "actor": {
-		                "mbox": "mailto:jason.haag.ctr@adlnet.gov",
-		                "name": "Jason Haag",
-		                "objectType": "Agent"
-		            },
+		            "actor": actor,
 		            "verb": {
 		                "id": "http://adlnet.gov/expapi/verbs/interacted",
 		                "display": {
