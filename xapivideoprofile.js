@@ -2,7 +2,7 @@
 
 	var XAPIVideoProfile = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
-		
+
 	    // Global Variables
 	    var sessionID = ADL.ruuid();
 	        
@@ -20,7 +20,7 @@
 	        var objectID = myPlayer.currentSrc().toString();
 
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
@@ -64,13 +64,13 @@
 	        var userAgent = navigator.userAgent.toString();
 	        //alert(userAgent);
 
-	        // get user volume and return it as a percentage
-	        var volumeAsPercentage = myPlayer.volume() * 100;
-	        //alert(volumeAsPercentage);
+	        // get user volume
+	        var volume = formatFloat(myPlayer.volume());
 
 	        // prepare the xAPI initialized statement
 	        var initializedStmt = 
 	        {
+	        	"id": sessionID,
 	            "actor": actor,
 	            "verb": {
 	                "id": "http://adlnet.gov/expapi/verbs/initialized",
@@ -105,9 +105,9 @@
 	                        "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
 	                        "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
 	                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
-	                        "https://w3id.org/xapi/video/extensions/speed": playbackRate,
+	                        "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
 	                        "https://w3id.org/xapi/video/extensions/user-agent": userAgent,
-	                        "https://w3id.org/xapi/video/extensions/volume": volumeAsPercentage,
+	                        "https://w3id.org/xapi/video/extensions/volume": volume,
 	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
 	                }
@@ -130,7 +130,7 @@
 	        var timeStamp = dateTime.toISOString();
 	        
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -194,7 +194,7 @@
 	        var timeStamp = dateTime.toISOString();
 	        
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -258,7 +258,7 @@
 	        var timeStamp = dateTime.toISOString();
 	        
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -323,7 +323,7 @@
 	     
 	        myPlayer.on("timeupdate", function() {
 	            previousTime = currentTime;
-	            currentTime = myPlayer.currentTime();
+	            currentTime = formatFloat(myPlayer.currentTime());
 	        });
 	     
 	        myPlayer.on("seeking", function() {
@@ -334,14 +334,13 @@
 	     
 	        myPlayer.on("seeked", function() {
 	            console.log("seeked from", seekStart, "to", currentTime, "; delta:", currentTime - previousTime);
-	            seekStart = null;
 	            
 	        // get the current date and time and throw it into a variable for xAPI timestamp        
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
 	        
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -406,7 +405,7 @@
 	        var timeStamp = dateTime.toISOString();
 	        
 	        // get the current time position in the video
-	        var resultExtTime = myPlayer.currentTime().toString();
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -417,7 +416,7 @@
 	            var volumeChange = 0;
 	            } 
 	        if (isMuted === false) {
-	                var volumeChange = myPlayer.volume();
+	                var volumeChange = formatFloat(myPlayer.volume());
 	            }
 	            console.log(volumeChange);
 	     
@@ -488,7 +487,7 @@
 		        var timeStamp = dateTime.toISOString();
 		        
 		        // get the current time position in the video
-		        var resultExtTime = myPlayer.currentTime().toString();
+		        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 		        var objectID = myPlayer.currentSrc().toString();
@@ -561,7 +560,7 @@
 		        var timeStamp = dateTime.toISOString();
 		        
 		        // get the current time position in the video
-		        var resultExtTime = myPlayer.currentTime().toString();
+		        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 		        var objectID = myPlayer.currentSrc().toString();
@@ -627,6 +626,11 @@
 		    }         
 		}); 
 	}
+	function formatFloat(number) {
+		if(number == null)
+			return null;
 
+		return +(parseFloat(number).toFixed(3));
+	}
 	ADL.XAPIVideoProfile = XAPIVideoProfile;
 }(window.ADL = window.ADL || {}));
