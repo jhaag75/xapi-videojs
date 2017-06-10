@@ -1,6 +1,9 @@
-(function(ADL){
 
-	var XAPIVideoProfile = function(target, src, options) {
+// xAPI Statements Based on VideoJS Player Interactions
+
+(function(ADL){
+    
+	var XAPIVideoJS = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
 	    // Global Variables
