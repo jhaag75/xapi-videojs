@@ -635,5 +635,5 @@
 
 		return +(parseFloat(number).toFixed(3));
 	}
-	ADL.XAPIVideoProfile = XAPIVideoProfile;
+	ADL.XAPIVideoJS = XAPIVideoJS;
 }(window.ADL = window.ADL || {}));
