@@ -2,23 +2,24 @@
 // xAPI Statements Based on VideoJS Player Interactions
 
 (function(ADL){
-    
+
 	var XAPIVideoJS = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
 	    // Global Variables
 	    var sessionID = ADL.ruuid();
-	        
+      var skipPlayEvent = false;
+
 	    // Load the VideoJS player
 	    var myPlayer =  videojs(target);
 
 		/***************************************************************************************/
 		/***** VIDEO.JS Player On Ready Event | xAPI Initialized Statement ********************/
-		/*************************************************************************************/    
-		    
+		/*************************************************************************************/
+
 	    // myPlayer object is defined, so It is ready to listen events
 	    myPlayer.on("ready",function(){
-	        
+
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
 
@@ -35,17 +36,17 @@
 	        // get the current screen size
 	        var screenSize = "";
 	        screenSize += screen.width + "x" + screen.height;
-	        
+
 	        // get the playback size of the video
 	        var playbackSize = "";
 	        playbackSize += myPlayer.width() + "x" + myPlayer.height();
 	        //alert ("Playback Size:" + playbackSize);
-	        
+
 	         // get the playback rate of the video
 	        var playbackRate = myPlayer.playbackRate();
 	        //alert ("Playback Rate:" + playbackRate);
-	        
-	        
+
+
 	        // Get all text tracks for the current player to determine if there are any CC-Subtitles
 	        var tracks = myPlayer.textTracks();
 
@@ -60,10 +61,10 @@
 	          if (track.mode ==='showing') {
 	              var ccEnabled = true;
 	              var ccLanguage = track.language;
-	          } 
-	              
+	          }
+
 	        }
-	        // get user agent header string 
+	        // get user agent header string
 	        var userAgent = navigator.userAgent.toString();
 	        //alert(userAgent);
 
@@ -71,7 +72,7 @@
 	        var volume = formatFloat(myPlayer.volume());
 
 	        // prepare the xAPI initialized statement
-	        var initializedStmt = 
+	        var initializedStmt =
 	        {
 	        	"id": sessionID,
 	            "actor": actor,
@@ -116,157 +117,171 @@
 	                }
 	            },
 	            "timestamp": timeStamp
-	        };      
-	        //send initialized statement to the LRS    
-	        ADL.XAPIWrapper.sendStatement(initializedStmt, function(resp, obj){   
+	        };
+	        //send initialized statement to the LRS
+	        ADL.XAPIWrapper.sendStatement(initializedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("initialized statement sent");
 	    });
-		    
+
 		/***************************************************************************************/
 		/***** VIDEO.JS Played Event | xAPI Played Statement **********************************/
 		/*************************************************************************************/
-		    
+
 	    myPlayer.on("play",function(){
-	        // get the current date and time and throw it into a variable for xAPI timestamp        
-	        var dateTime = new Date();
-	        var timeStamp = dateTime.toISOString();
-	        
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
+          // If user is seaking, skip the play event
+          if (skipPlayEvent !== true) {
 
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
-	        
-	        var playedStmt = 
-	        {
-	            "actor": actor,
-	            "verb": {
-	                "id": "https://w3id.org/xapi/video/verbs/played",
-	                "display": {
-	                    "en-US": "played"
-	                }
-	            },
-	            "object": {
-	                "id": objectID,
-	                "definition": {
-	                    "name": {
-	                        "en-US": "Ocean Life"
-	                    },
-	                    "description": {
-	                        "en-US": "Video of ocean life."
-	                    },
-	                    "type": "https://w3id.org/xapi/video/activity-type/video"
-	                },
-	                "objectType": "Activity"
-	            },
-	            "result": {
-	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
-	                }
-	            },
-	            "context": {
-	                "contextActivities": {
-	                    "category": [
-	                       {
-	                          "id": "https://w3id.org/xapi/video"
-	                       }
-	                    ]
-	                },
-	                "extensions": {
-	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+              // get the current date and time and throw it into a variable for xAPI timestamp
+    	        var dateTime = new Date();
+    	        var timeStamp = dateTime.toISOString();
 
-	                }
-	            },
-	            "timestamp": timeStamp
-	        };
+    	        // get the current time position in the video
+    	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
-	        //send played statement to the LRS    
-	        ADL.XAPIWrapper.sendStatement(playedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("played statement sent");            
-	    });    
-		    
+    	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
+    	        var objectID = myPlayer.currentSrc().toString();
+
+    	        var playedStmt =
+    	        {
+    	            "actor": actor,
+    	            "verb": {
+    	                "id": "https://w3id.org/xapi/video/verbs/played",
+    	                "display": {
+    	                    "en-US": "played"
+    	                }
+    	            },
+    	            "object": {
+    	                "id": objectID,
+    	                "definition": {
+    	                    "name": {
+    	                        "en-US": "Ocean Life"
+    	                    },
+    	                    "description": {
+    	                        "en-US": "Video of ocean life."
+    	                    },
+    	                    "type": "https://w3id.org/xapi/video/activity-type/video"
+    	                },
+    	                "objectType": "Activity"
+    	            },
+    	            "result": {
+    	                "extensions": {
+    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+    	                }
+    	            },
+    	            "context": {
+    	                "contextActivities": {
+    	                    "category": [
+    	                       {
+    	                          "id": "https://w3id.org/xapi/video"
+    	                       }
+    	                    ]
+    	                },
+    	                "extensions": {
+    	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+
+    	                }
+    	            },
+    	            "timestamp": timeStamp
+    	        };
+
+    	        //send played statement to the LRS
+    	        ADL.XAPIWrapper.sendStatement(playedStmt, function(resp, obj){
+    	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
+    	        console.log("played statement sent");
+          } else {
+              // Seek statement has been sent, resume play events
+              skipPlayEvent = false;
+          }
+	    });
+
 		/***************************************************************************************/
 		/***** VIDEO.JS Paused Event | xAPI Paused Statement **********************************/
-		/*************************************************************************************/    
-		    
+		/*************************************************************************************/
+
 	    myPlayer.on("pause",function(){
-	        // get the current date and time and throw it into a variable for xAPI timestamp        
-	        var dateTime = new Date();
-	        var timeStamp = dateTime.toISOString();
-	        
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
+          // If the user is seeking, do not send the pause event
+          if (this.seeking() === false)
+          {
+    	        // get the current date and time and throw it into a variable for xAPI timestamp
+    	        var dateTime = new Date();
+    	        var timeStamp = dateTime.toISOString();
 
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
-	        
-	        var pausedStmt = 
-	        {
-	            "actor": actor,
-	            "verb": {
-	                "id": "https://w3id.org/xapi/video/verbs/paused",
-	                "display": {
-	                    "en-US": "paused"
-	                }
-	            },
-	            "object": {
-	                "id": objectID,
-	                "definition": {
-	                    "name": {
-	                        "en-US": "Ocean Life"
-	                    },
-	                    "description": {
-	                        "en-US": "Video of ocean life."
-	                    },
-	                    "type": "https://w3id.org/xapi/video/activity-type/video"
-	                },
-	                "objectType": "Activity"
-	            },
-	            "result": {
-	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
-	                }
-	            },
-	            "context": {
-	                "contextActivities": {
-	                    "category": [
-	                       {
-	                          "id": "https://w3id.org/xapi/video"
-	                       }
-	                    ]
-	                },
-	                "extensions": {
-	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+    	        // get the current time position in the video
+    	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
-	                }                
-	            },
-	            "timestamp": timeStamp 
-	        };
-	        //send paused statement to the LRS    
-	        ADL.XAPIWrapper.sendStatement(pausedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("paused statement sent");            
+    	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
+    	        var objectID = myPlayer.currentSrc().toString();
+
+    	        var pausedStmt =
+    	        {
+    	            "actor": actor,
+    	            "verb": {
+    	                "id": "https://w3id.org/xapi/video/verbs/paused",
+    	                "display": {
+    	                    "en-US": "paused"
+    	                }
+    	            },
+    	            "object": {
+    	                "id": objectID,
+    	                "definition": {
+    	                    "name": {
+    	                        "en-US": "Ocean Life"
+    	                    },
+    	                    "description": {
+    	                        "en-US": "Video of ocean life."
+    	                    },
+    	                    "type": "https://w3id.org/xapi/video/activity-type/video"
+    	                },
+    	                "objectType": "Activity"
+    	            },
+    	            "result": {
+    	                "extensions": {
+    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+    	                }
+    	            },
+    	            "context": {
+    	                "contextActivities": {
+    	                    "category": [
+    	                       {
+    	                          "id": "https://w3id.org/xapi/video"
+    	                       }
+    	                    ]
+    	                },
+    	                "extensions": {
+    	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+
+    	                }
+    	            },
+    	            "timestamp": timeStamp
+    	        };
+    	        //send paused statement to the LRS
+    	        ADL.XAPIWrapper.sendStatement(pausedStmt, function(resp, obj){
+    	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
+    	        console.log("paused statement sent");
+          } else {
+              //skip subsequent play Event
+              skipPlayEvent = true;
+          }
 	    });
 
 
 		/***************************************************************************************/
 		/***** VIDEO.JS Ended Event | xAPI Completed Statement **********************************/
 		/*************************************************************************************/
-		    
+
 		myPlayer.on("ended",function(){
-	        // get the current date and time and throw it into a variable for xAPI timestamp        
+	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
-	        
+
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
-	     
-	        var completedStmt = 
+
+	        var completedStmt =
 	        {
 	            "actor": actor,
 	            "verb": {
@@ -304,16 +319,16 @@
 	                "extensions": {
 	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
-	                }               
+	                }
 	            },
-	            "timestamp": timeStamp 
+	            "timestamp": timeStamp
 	        };
-	        //send completed statement to the LRS    
+	        //send completed statement to the LRS
 	        ADL.XAPIWrapper.sendStatement(completedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("completed statement sent");            
-	    }); 
-		    
+	        console.log("completed statement sent");
+	    });
+
 		/***************************************************************************************/
 		/***** VIDEO.JS  Seekable Event | xAPI Seeked Statement *******************************/
 		/*************************************************************************************/
@@ -323,32 +338,32 @@
 	        var previousTime = 0;
 	        var currentTime = 0;
 	        var seekStart = null;
-	     
+
 	        myPlayer.on("timeupdate", function() {
 	            previousTime = currentTime;
 	            currentTime = formatFloat(myPlayer.currentTime());
 	        });
-	     
+
 	        myPlayer.on("seeking", function() {
 	            if(seekStart === null) {
 	                seekStart = previousTime;
 	            }
 	        });
-	     
+
 	        myPlayer.on("seeked", function() {
 	            console.log("seeked from", seekStart, "to", currentTime, "; delta:", currentTime - previousTime);
-	            
-	        // get the current date and time and throw it into a variable for xAPI timestamp        
+
+	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
-	        
+
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
-	            
-	        var seekedStmt = 
+
+	        var seekedStmt =
 	        {
 	            "actor": actor,
 	            "verb": {
@@ -388,42 +403,42 @@
 	                "extensions": {
 	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
-	                }               
+	                }
 	            },
-	            "timestamp": timeStamp 
+	            "timestamp": timeStamp
 	        };
-	        //send seeked statement to the LRS    
+	        //send seeked statement to the LRS
 	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("seeked statement sent");            
-	    });             
+	        console.log("seeked statement sent");
+	    });
 
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
 		/*************************************************************************************/
-		    
+
 		myPlayer.on("volumechange",function(){
-	        // get the current date and time and throw it into a variable for xAPI timestamp        
+	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
-	        
+
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
-	 
+
 	        // get user volume and return it as a percentage
 	        var isMuted = myPlayer.muted();
 	        if (isMuted === true) {
 	            var volumeChange = 0;
-	            } 
+	            }
 	        if (isMuted === false) {
 	                var volumeChange = formatFloat(myPlayer.volume());
 	            }
 	            console.log(volumeChange);
-	     
-	        var volChangeStmt = 
+
+	        var volChangeStmt =
 	        {
 	            "actor": actor,
 	            "verb": {
@@ -462,49 +477,49 @@
 	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID,
 	                        "https://w3id.org/xapi/video/extensions/volume": volumeChange
 
-	                }               
+	                }
 	            },
-	            "timestamp": timeStamp 
+	            "timestamp": timeStamp
 	        };
-	        //send volume change statement to the LRS    
+	        //send volume change statement to the LRS
 	        ADL.XAPIWrapper.sendStatement(volChangeStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("interacted volumeChange statement sent");            
-	    }); 
+	        console.log("interacted volumeChange statement sent");
+	    });
 
 		/***************************************************************************************/
 		/***** VIDEO.JS Fullscreen Event | xAPI Interacted Statement **************************/
 		/*************************************************************************************/
-			    
+
 		myPlayer.on("fullscreenchange",function(){
 
 		    // check to see if the player is in fullscreen mode
 		    var fullScreenOrNot = myPlayer.isFullscreen();
 		    // console.log("full screen:" + fullScreenOrNot);
-		     
-		    // if full screen true, then send an interacted statement 
+
+		    // if full screen true, then send an interacted statement
 		    if (fullScreenOrNot === true) {
-		     
-		        // get the current date and time and throw it into a variable for xAPI timestamp        
+
+		        // get the current date and time and throw it into a variable for xAPI timestamp
 		        var dateTime = new Date();
 		        var timeStamp = dateTime.toISOString();
-		        
+
 		        // get the current time position in the video
 		        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 		        var objectID = myPlayer.currentSrc().toString();
-		         
+
 		        // get the current screen size
 		        var screenSize = "";
 		        screenSize += screen.width + "x" + screen.height;
-		        
+
 		        // get the playback size of the video
 		        var playbackSize = "";
 		        playbackSize += myPlayer.width() + "x" + myPlayer.height();
-		        //alert ("Playback Size:" + playbackSize);     
-		  
-		        var fullScreenTrueStmt = 
+		        //alert ("Playback Size:" + playbackSize);
+
+		        var fullScreenTrueStmt =
 		        {
 		            "actor": actor,
 		            "verb": {
@@ -545,39 +560,39 @@
 		                        "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
 		                        "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize
 
-		                }               
+		                }
 		            },
-		            "timestamp": timeStamp 
+		            "timestamp": timeStamp
 		        };
-		        //send full screen statement to the LRS    
+		        //send full screen statement to the LRS
 		        ADL.XAPIWrapper.sendStatement(fullScreenTrueStmt, function(resp, obj){
 		        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-		        console.log("interacted statement (fullScreen true) sent"); 
+		        console.log("interacted statement (fullScreen true) sent");
 		    }
-		    
+
 		     // if fullScreen is false then send a different interacted statement
 		    if (fullScreenOrNot === false) {
-		       
-		        // get the current date and time and throw it into a variable for xAPI timestamp        
+
+		        // get the current date and time and throw it into a variable for xAPI timestamp
 		        var dateTime = new Date();
 		        var timeStamp = dateTime.toISOString();
-		        
+
 		        // get the current time position in the video
 		        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 		        var objectID = myPlayer.currentSrc().toString();
-		         
+
 		        // get the current screen size
 		        var screenSize = "";
 		        screenSize += screen.width + "x" + screen.height;
-		        
+
 		        // get the playback size of the video
 		        var playbackSize = "";
 		        playbackSize += myPlayer.width() + "x" + myPlayer.height();
-		        //alert ("Playback Size:" + playbackSize);     
-		  
-		        var fullScreenFalseStmt = 
+		        //alert ("Playback Size:" + playbackSize);
+
+		        var fullScreenFalseStmt =
 		        {
 		            "actor": actor,
 		            "verb": {
@@ -618,16 +633,16 @@
 		                        "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
 		                        "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize
 
-		                }               
+		                }
 		            },
-		            "timestamp": timeStamp 
+		            "timestamp": timeStamp
 		        };
-		        //send exit full screen statement to the LRS    
+		        //send exit full screen statement to the LRS
 		        ADL.XAPIWrapper.sendStatement(fullScreenFalseStmt, function(resp, obj){
 		        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-		        console.log("interacted statement (fullscreen false) sent");    
-		    }         
-		}); 
+		        console.log("interacted statement (fullscreen false) sent");
+		    }
+		});
 	}
 	function formatFloat(number) {
 		if(number == null)
