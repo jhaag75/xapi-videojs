@@ -57,6 +57,7 @@
 	          if (track.kind === 'captions' || track.kind === 'subtitles' && track.language === 'en') {
 	            track.mode = 'showing';
 	          }
+
 	          // If it is showing it is enabled
 	          if (track.mode ==='showing') {
 	              var ccEnabled = true;
@@ -192,6 +193,7 @@
           } else {
               // Seek statement has been sent, resume play events
               skipPlayEvent = false;
+              send_seeked();
           }
 	    });
 
@@ -350,7 +352,7 @@
 	            }
 	        });
 
-	        myPlayer.on("seeked", function() {
+	        function send_seeked() {
 	            console.log("seeked from", seekStart, "to", currentTime, "; delta:", currentTime - previousTime);
 
 	        // get the current date and time and throw it into a variable for xAPI timestamp
@@ -411,7 +413,7 @@
 	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("seeked statement sent");
-	    });
+	    }
 
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
