@@ -54,9 +54,9 @@
 	          var track = tracks[i];
 
 	          // Find the English captions track and mark it as "showing".
-	          if (track.kind === 'captions' || track.kind === 'subtitles' && track.language === 'en') {
-	            track.mode = 'showing';
-	          }
+	          //if (track.kind === 'captions' || track.kind === 'subtitles' && track.language === 'en') {
+	            //track.mode = 'showing';
+	          //}
 
 	          // If it is showing it is enabled
 	          if (track.mode ==='showing') {
