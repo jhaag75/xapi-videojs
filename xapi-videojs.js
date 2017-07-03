@@ -8,7 +8,8 @@
 
 	    // Global Variables
 	    var sessionID = ADL.ruuid();
-      var skipPlayEvent = false;
+        var skipPlayEvent = false;
+        
 
 	    // Load the VideoJS player
 	    var myPlayer =  videojs(target);
@@ -22,9 +23,6 @@
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
-
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
@@ -273,6 +271,8 @@
 		/*************************************************************************************/
 
 		myPlayer.on("ended",function(){
+            
+            
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
@@ -329,6 +329,8 @@
 	        ADL.XAPIWrapper.sendStatement(completedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("completed statement sent");
+            // create a modal window for the user to terminate the session and dispose of the player
+            terminateModal();
 	    });
 
 		/***************************************************************************************/
@@ -413,8 +415,89 @@
 	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
 	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("seeked statement sent");
+        
 	    }
 
+
+		/***************************************************************************************/
+		/***** VIDEO.JS Modal Close Event | xAPI Terminated Statement ************************/
+		/*************************************************************************************/
+       
+        function terminateModal() {
+           
+            var modal = myPlayer.createModal('The video has ended. Click the close button to exit.');
+            modal.on('modalclose', function() {
+                TerminateMyPlayer();
+            });
+            
+        }
+    
+
+        function TerminateMyPlayer() {
+ 
+	        // get the current date and time and throw it into a variable for xAPI timestamp
+	        var dateTime = new Date();
+	        var timeStamp = dateTime.toISOString();
+
+	        // get the current time position in the video
+	        var resultExtTime = formatFloat(myPlayer.currentTime());
+
+	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
+	        var objectID = myPlayer.currentSrc().toString();
+            
+            
+	        var terminatedStmt =
+	        {
+	            "actor": actor,
+	            "verb": {
+	                "id": "http://adlnet.gov/expapi/verbs/terminated",
+	                "display": {
+	                    "en-US": "terminated"
+	                }
+	            },
+	            "object": {
+	                "id": objectID,
+	                "definition": {
+	                    "name": {
+	                        "en-US": "Ocean Life"
+	                    },
+	                    "description": {
+	                        "en-US": "Video of ocean life."
+	                    },
+	                    "type": "https://w3id.org/xapi/video/activity-type/video"
+	                },
+	                "objectType": "Activity"
+	            },
+	            "result": {
+	                "extensions": {
+	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+	                }
+	            },
+	            "context": {
+	                "contextActivities": {
+	                    "category": [
+	                       {
+	                          "id": "https://w3id.org/xapi/video"
+	                       }
+	                    ]
+	                },
+	                "extensions": {
+	                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+
+	                }
+	            },
+	            "timestamp": timeStamp
+	        };
+            
+	        //send completed statement to the LRS
+	        ADL.XAPIWrapper.sendStatement(terminatedStmt, function(resp, obj){
+	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
+	        console.log("terminated statement sent");
+            myPlayer.dispose();
+	    };
+
+		
+        
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
 		/*************************************************************************************/
@@ -436,7 +519,7 @@
 	            var volumeChange = 0;
 	            }
 	        if (isMuted === false) {
-	                var volumeChange = formatFloat(myPlayer.volume());
+	           var volumeChange = formatFloat(myPlayer.volume());
 	            }
 	            console.log(volumeChange);
 
@@ -654,3 +737,4 @@
 	}
 	ADL.XAPIVideoJS = XAPIVideoJS;
 }(window.ADL = window.ADL || {}));
+
