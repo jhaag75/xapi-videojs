@@ -6,10 +6,22 @@
 	var XAPIVideoJS = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
-	    // Global Variables
+	    // Global Variables & common functions
 	    var myPlayer =  videojs(target);
 	    var sessionID = ADL.ruuid();
         var skipPlayEvent = false;       
+
+        var timerangePropertyNames = ['buffered', 'seekable', 'played'];
+        // this function can be used for seeked, played, or buffered events from videoJS
+        var timeRangesToString = function timeRangesToString(tr) {
+          var arr = [];
+
+          for (var i = 0; i < tr.length; i++) {
+            arr.push(tr.start(i).toFixed(3) + '[.]' + tr.end(i).toFixed(3));
+          }
+
+          return arr;
+        };
         
         // common math functions
         function formatFloat(number) {
@@ -134,7 +146,7 @@
 	    myPlayer.on("play",function(){
           // If user is seaking, skip the play event
           if (skipPlayEvent !== true) {
-
+              
               // get the current date and time and throw it into a variable for xAPI timestamp
     	        var dateTime = new Date();
     	        var timeStamp = dateTime.toISOString();
@@ -144,6 +156,10 @@
 
     	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
     	        var objectID = myPlayer.currentSrc().toString();
+              
+                // get played segments of video from timeRange object and store in variable
+                var playedSegments = timeRangesToString(myPlayer.tech(true).played());
+                console.log("played segments:" + playedSegments);
 
     	        var playedStmt =
     	        {
@@ -169,7 +185,8 @@
     	            },
     	            "result": {
     	                "extensions": {
-    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
+                            "https://w3id.org/xapi/video/extensions/played-segments": playedSegments
     	                }
     	            },
     	            "context": {
@@ -225,6 +242,10 @@
                 var percentTime = (currentTime / duration );
                 var percentProgress = percentTime.toPrecision(1);
                 console.log("video progress percentage:" + percentProgress +".");
+              
+                // get played segments of video from timeRange object and store in variable
+                var playedSegments = timeRangesToString(myPlayer.tech(true).played());
+                console.log("played segments:" + playedSegments);              
 
               
     	        var pausedStmt =
@@ -252,7 +273,8 @@
     	            "result": {
     	                "extensions": {
     	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
-                            "https://w3id.org/xapi/video/extensions/progress": percentProgress 
+                            "https://w3id.org/xapi/video/extensions/progress": percentProgress,
+                            "https://w3id.org/xapi/video/extensions/played-segments": playedSegments
     	                }
     	            },
     	            "context": {
@@ -378,10 +400,12 @@
 	                seekStart = previousTime;
 	            }
 	        });
-
-	        function send_seeked() {
-	            console.log("seeked from", seekStart, "to", currentTime, "; delta:", currentTime - previousTime);
-
+            
+        
+	   function send_seeked() {
+	       
+           console.log("seeked:" + seekStart + "[.]" +currentTime);
+                
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
