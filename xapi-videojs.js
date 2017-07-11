@@ -7,12 +7,17 @@
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
 	    // Global Variables
-	    var sessionID = ADL.ruuid();
-        var skipPlayEvent = false;
-        
-
-	    // Load the VideoJS player
 	    var myPlayer =  videojs(target);
+	    var sessionID = ADL.ruuid();
+        var skipPlayEvent = false;       
+        
+        // common math functions
+        function formatFloat(number) {
+            if(number == null)
+                return null;
+
+            return +(parseFloat(number).toFixed(3));
+        }    
 
 		/***************************************************************************************/
 		/***** VIDEO.JS Player On Ready Event | xAPI Initialized Statement ********************/
@@ -38,11 +43,10 @@
 	        // get the playback size of the video
 	        var playbackSize = "";
 	        playbackSize += myPlayer.width() + "x" + myPlayer.height();
-	        //alert ("Playback Size:" + playbackSize);
+
 
 	         // get the playback rate of the video
 	        var playbackRate = myPlayer.playbackRate();
-	        //alert ("Playback Rate:" + playbackRate);
 
 
 	        // Get all text tracks for the current player to determine if there are any CC-Subtitles
@@ -51,21 +55,20 @@
 	        for (var i = 0; i < tracks.length; i++) {
 	          var track = tracks[i];
 
-	          // Find the English captions track and mark it as "showing".
-	          //if (track.kind === 'captions' || track.kind === 'subtitles' && track.language === 'en') {
-	            //track.mode = 'showing';
-	          //}
-
-	          // If it is showing it is enabled
+	          // If captions and subtitles are enabled mark track mode as "showing".
+	          if (track.kind === 'captions' || track.kind === 'subtitles') {
+	            track.mode = 'showing';
+	          }
+	          // If it is showing then CC is enabled and determine the language
 	          if (track.mode ==='showing') {
 	              var ccEnabled = true;
 	              var ccLanguage = track.language;
-	          }
-
+	          } 
+	              
 	        }
 	        // get user agent header string
 	        var userAgent = navigator.userAgent.toString();
-	        //alert(userAgent);
+
 
 	        // get user volume
 	        var volume = formatFloat(myPlayer.volume());
@@ -117,10 +120,11 @@
 	            },
 	            "timestamp": timeStamp
 	        };
-	        //send initialized statement to the LRS
+	        //send initialized statement to the LRS & show data in console
+            console.log("initialized statement sent");
 	        ADL.XAPIWrapper.sendStatement(initializedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("initialized statement sent");
+	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+            console.log(initializedStmt);
 	    });
 
 		/***************************************************************************************/
@@ -185,9 +189,10 @@
     	        };
 
     	        //send played statement to the LRS
-    	        ADL.XAPIWrapper.sendStatement(playedStmt, function(resp, obj){
-    	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
     	        console.log("played statement sent");
+                ADL.XAPIWrapper.sendStatement(playedStmt, function(resp, obj){
+                console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+                console.log(playedStmt);              
           } else {
               // Seek statement has been sent, resume play events
               skipPlayEvent = false;
@@ -209,10 +214,19 @@
 
     	        // get the current time position in the video
     	        var resultExtTime = formatFloat(myPlayer.currentTime());
+                
 
     	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
     	        var objectID = myPlayer.currentSrc().toString();
 
+                // get the progress percentage and put it in a variable called percentProgress
+                currentTime = myPlayer.currentTime();
+                duration = myPlayer.duration();
+                var percentTime = (currentTime / duration );
+                var percentProgress = percentTime.toPrecision(1);
+                console.log("video progress percentage:" + percentProgress +".");
+
+              
     	        var pausedStmt =
     	        {
     	            "actor": actor,
@@ -237,7 +251,8 @@
     	            },
     	            "result": {
     	                "extensions": {
-    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+    	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
+                            "https://w3id.org/xapi/video/extensions/progress": percentProgress 
     	                }
     	            },
     	            "context": {
@@ -256,9 +271,10 @@
     	            "timestamp": timeStamp
     	        };
     	        //send paused statement to the LRS
-    	        ADL.XAPIWrapper.sendStatement(pausedStmt, function(resp, obj){
-    	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
     	        console.log("paused statement sent");
+                ADL.XAPIWrapper.sendStatement(pausedStmt, function(resp, obj){
+                console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+                console.log(pausedStmt);
           } else {
               //skip subsequent play Event
               skipPlayEvent = true;
@@ -279,6 +295,13 @@
 
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
+
+            // get the progress percentage and put it in a variable called percentProgress
+            currentTime = myPlayer.currentTime();
+            duration = myPlayer.duration();
+            var percentTime = (currentTime / duration );
+            var percentProgress = percentTime.toPrecision(1);
+            console.log("video progress percentage:" + percentProgress +".");            
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -307,7 +330,8 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
+                        "https://w3id.org/xapi/video/extensions/progress": percentProgress
 	                }
 	            },
 	            "context": {
@@ -326,9 +350,10 @@
 	            "timestamp": timeStamp
 	        };
 	        //send completed statement to the LRS
-	        ADL.XAPIWrapper.sendStatement(completedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("completed statement sent");
+	        ADL.XAPIWrapper.sendStatement(completedStmt, function(resp, obj){
+	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+            console.log(completedStmt);            
             // create a modal window for the user to terminate the session and dispose of the player
             terminateModal();
 	    });
@@ -412,10 +437,10 @@
 	            "timestamp": timeStamp
 	        };
 	        //send seeked statement to the LRS
-	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("seeked statement sent");
-        
+   	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
+	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+            console.log(seekedStmt);     
 	    }
 
 
@@ -441,6 +466,13 @@
 
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
+            
+            // get the progress percentage and put it in a variable called percentProgress
+            currentTime = myPlayer.currentTime();
+            duration = myPlayer.duration();
+            var percentTime = (currentTime / duration );
+            var percentProgress = percentTime.toPrecision(1);
+            console.log("video progress percentage:" + percentProgress +".");            
 
 	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
 	        var objectID = myPlayer.currentSrc().toString();
@@ -470,7 +502,8 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
+                        "https://w3id.org/xapi/video/extensions/progress": percentProgress
 	                }
 	            },
 	            "context": {
@@ -490,9 +523,10 @@
 	        };
             
 	        //send completed statement to the LRS
-	        ADL.XAPIWrapper.sendStatement(terminatedStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 	        console.log("terminated statement sent");
+	        ADL.XAPIWrapper.sendStatement(terminatedStmt, function(resp, obj){
+	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+            console.log(terminatedStmt);            
             myPlayer.dispose();
 	    };
 
@@ -515,13 +549,15 @@
 
 	        // get user volume and return it as a percentage
 	        var isMuted = myPlayer.muted();
+            
 	        if (isMuted === true) {
 	            var volumeChange = 0;
 	            }
 	        if (isMuted === false) {
 	           var volumeChange = formatFloat(myPlayer.volume());
 	            }
-	            console.log(volumeChange);
+            
+	       console.log("volume changed to: " + volumeChange);
 
 	        var volChangeStmt =
 	        {
@@ -567,9 +603,10 @@
 	            "timestamp": timeStamp
 	        };
 	        //send volume change statement to the LRS
+	        console.log("interacted statement (volume change) sent");
 	        ADL.XAPIWrapper.sendStatement(volChangeStmt, function(resp, obj){
-	        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
-	        console.log("interacted volumeChange statement sent");
+	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+            console.log(volChangeStmt);            
 	    });
 
 		/***************************************************************************************/
@@ -650,9 +687,10 @@
 		            "timestamp": timeStamp
 		        };
 		        //send full screen statement to the LRS
-		        ADL.XAPIWrapper.sendStatement(fullScreenTrueStmt, function(resp, obj){
-		        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 		        console.log("interacted statement (fullScreen true) sent");
+                ADL.XAPIWrapper.sendStatement(fullScreenTrueStmt, function(resp, obj){
+	            console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+                console.log(fullScreenTrueStmt);
 		    }
 
 		     // if fullScreen is false then send a different interacted statement
@@ -723,18 +761,15 @@
 		            "timestamp": timeStamp
 		        };
 		        //send exit full screen statement to the LRS
-		        ADL.XAPIWrapper.sendStatement(fullScreenFalseStmt, function(resp, obj){
-		        console.log("[" + obj.id + "]: " + resp.status + " - " + resp.statusText);});
 		        console.log("interacted statement (fullscreen false) sent");
+                ADL.XAPIWrapper.sendStatement(fullScreenFalseStmt, function(resp, obj){
+                console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+                console.log(fullScreenFalseStmt);                
 		    }
 		});
 	}
-	function formatFloat(number) {
-		if(number == null)
-			return null;
+    
 
-		return +(parseFloat(number).toFixed(3));
-	}
 	ADL.XAPIVideoJS = XAPIVideoJS;
 }(window.ADL = window.ADL || {}));
 
