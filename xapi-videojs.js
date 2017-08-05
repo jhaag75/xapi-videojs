@@ -249,6 +249,7 @@
               
                 // get played segments of video from timeRange object and store in variable
                 var playedSegments = timeRangesToString(myPlayer.tech(true).played());
+                playedSegments = playedSegments.join("[,]");
                 console.log("played segments:" + playedSegments);
 
     	        var playedStmt =
@@ -335,6 +336,7 @@
               
                 // get played segments of video from timeRange object and store in variable
                 var playedSegments = timeRangesToString(myPlayer.tech(true).played());
+                playedSegments = playedSegments.join("[,]");
                 console.log("played segments:" + playedSegments);              
 
               
