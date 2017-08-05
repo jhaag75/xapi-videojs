@@ -11,6 +11,7 @@
 	    var sessionID = ADL.ruuid();
         var skipPlayEvent = false;       
     	var sendCCSubtitle = false;
+    	var volumeSliderActive = false;
 
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
         var tracks = myPlayer.textTracks();
@@ -647,9 +648,22 @@
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
 		/*************************************************************************************/
-
-		myPlayer.on("volumechange",function(){
-	        // get the current date and time and throw it into a variable for xAPI timestamp
+		myPlayer.controlBar.volumePanel.volumeControl.on("slideractive", function() {
+			volumeSliderActive = true;
+		});
+		myPlayer.controlBar.volumePanel.volumeControl.on("sliderinactive", function() {
+			console.log('event sliderinactive: send volume change statement');
+			send_volumechange();
+			volumeSliderActive = false;
+		});
+		myPlayer.on("volumechange",function() {
+			if(!volumeSliderActive) {
+				console.log('event volumechange (and volumeSliderActive is false): send volume change statement');
+				send_volumechange();
+			}
+		});
+		function send_volumechange() {
+			// get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
 
@@ -719,7 +733,7 @@
 	        ADL.XAPIWrapper.sendStatement(volChangeStmt, function(resp, obj){
 	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
             console.log(volChangeStmt);            
-	    });
+	    }
 
 		/***************************************************************************************/
 		/***** VIDEO.JS Fullscreen Event | xAPI Interacted Statement **************************/
