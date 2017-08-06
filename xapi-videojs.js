@@ -59,7 +59,7 @@
 
 	        // get the playback size of the video
 	        var playbackSize = "";
-	        playbackSize += myPlayer.width() + "x" + myPlayer.height();
+	        playbackSize += myPlayer.currentWidth() + "x" + myPlayer.currentHeight();
 
 
 	         // get the playback rate of the video
@@ -766,7 +766,7 @@
 
 		        // get the playback size of the video
 		        var playbackSize = "";
-		        playbackSize += myPlayer.width() + "x" + myPlayer.height();
+		        playbackSize += myPlayer.currentWidth() + "x" + myPlayer.currentHeight();
 		        //alert ("Playback Size:" + playbackSize);
 
 		        var fullScreenTrueStmt =
@@ -840,7 +840,7 @@
 
 		        // get the playback size of the video
 		        var playbackSize = "";
-		        playbackSize += myPlayer.width() + "x" + myPlayer.height();
+		        playbackSize += myPlayer.currentWidth() + "x" + myPlayer.currentHeight();
 		        //alert ("Playback Size:" + playbackSize);
 
 		        var fullScreenFalseStmt =
