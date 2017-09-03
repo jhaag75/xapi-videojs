@@ -6,27 +6,21 @@
 	var XAPIVideoJS = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
+
 	    // Global Variables & common functions
 	    var myPlayer =  videojs(target);
+        var objectID = myPlayer.currentSrc().toString();
 	    var sessionID = ADL.ruuid();
         var skipPlayEvent = false;       
     	var sendCCSubtitle = false;
     	var volumeSliderActive = false;
+    	var played_segments = "";
+    	var played_segments_segment_start = null;
+    	var played_segments_segment_end = null;
+    	var started	= false;
 
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
         var tracks = myPlayer.textTracks();
-
-        var timerangePropertyNames = ['buffered', 'seekable', 'played'];
-        // this function can be used for seeked, played, or buffered events from videoJS
-        var timeRangesToString = function timeRangesToString(tr) {
-          var arr = [];
-
-          for (var i = 0; i < tr.length; i++) {
-            arr.push(tr.start(i).toFixed(3) + '[.]' + tr.end(i).toFixed(3));
-          }
-
-          return arr;
-        };
         
         // common math functions
         function formatFloat(number) {
@@ -34,18 +28,114 @@
                 return null;
 
             return +(parseFloat(number).toFixed(3));
-        }    
+        }
+
+        // other functions
+        function start_played_segment(start_time) {
+        	played_segments_segment_start = start_time;
+        }
+        function end_played_segment(end_time) {
+        	var arr;
+        	arr = (played_segments == "")? []:played_segments.split("[,]");
+        	arr.push(played_segments_segment_start + "[.]" + end_time);
+        	played_segments = arr.join("[,]");
+        	played_segments_segment_end = end_time;
+        	played_segments_segment_start = null;
+        }
+        function fixed_play_time(time) {
+        	if(played_segments_segment_end == null || Math.abs(played_segments_segment_end - time) >= 1 )
+        		return time;
+        	else
+        		return played_segments_segment_end;
+        }
+        function get_progress() {
+        	var arr, arr2;
+        	
+        	//get played segments array
+        	arr = (played_segments == "")? []:played_segments.split("[,]");
+			if(played_segments_segment_start != null){
+				arr.push(played_segments_segment_start + "[.]" + formatFloat(myPlayer.currentTime()));
+			}
+
+			arr2 = [];
+			arr.forEach(function(v,i) {
+				arr2[i] = v.split("[.]");
+				arr2[i][0] *= 1;
+				arr2[i][1] *= 1;
+			});
+
+			//sort the array
+			arr2.sort(function(a,b) { return a[0] - b[0];});
+			
+			//normalize the segments
+			arr2.forEach(function(v,i) {
+				if(i > 0) {
+					if(arr2[i][0] < arr2[i-1][1]) { 	//overlapping segments: this segment's starting point is less than last segment's end point.
+						//console.log(arr2[i][0] + " < " + arr2[i-1][1] + " : " + arr2[i][0] +" = " +arr2[i-1][1] );
+						arr2[i][0] = arr2[i-1][1];
+						if(arr2[i][0] > arr2[i][1])
+							arr2[i][1] = arr2[i][0];
+					}
+				}
+			});
+
+			//calculate progress_length
+			var progress_length = 0;
+			arr2.forEach(function(v,i) {
+				if(v[1] > v[0])
+				progress_length += v[1] - v[0]; 
+			});
+
+			var progress = 1 * (progress_length / myPlayer.duration()).toFixed(2);
+			return progress;
+        }
+
+        function video_start() {
+        	started = true;
+        	var myparams = [];
+        	myparams['agent'] = JSON.stringify(actor); 
+        	myparams['activity'] = objectID;
+            myparams['verb'] = 'https://w3id.org/xapi/video/verbs/paused';  
+        	myparams['limit']	= 1;
+
+        	if(typeof ADL.XAPIWrapper.lrs.registration == "string" && ADL.XAPIWrapper.lrs.registration.length == 36)
+        	{
+        		myparams['registration'] = ADL.XAPIWrapper.lrs.registration;
+        	}
+
+        	ret = ADL.XAPIWrapper.getStatements(myparams);
+        	if(	ret != undefined 
+        		&& ret.statements != undefined 
+        		&& ret.statements[0] != undefined 
+        		&& ret.statements[0]['result'] != undefined 
+        		&& ret.statements[0]['result']['extensions'] != undefined
+        		&& ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/played-segments'] != undefined
+        		) {
+        		console.log(played_segments);
+        		played_segments = ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/played-segments'];
+        		console.log(played_segments);
+        	}
+        	if(	ret != undefined 
+        		&& ret.statements != undefined 
+        		&& ret.statements[0] != undefined 
+        		&& ret.statements[0]['result'] != undefined 
+        		&& ret.statements[0]['result']['extensions'] != undefined
+        		&& ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/time'] != undefined
+        		) {
+        		var time = 1 * ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/time'];
+        		if(time > 0)
+        		myPlayer.currentTime(time);
+        		console.log(time);
+        	}
+
+        	send_initialized();
+        }
 
 		/***************************************************************************************/
-		/***** VIDEO.JS Player On Ready Event | xAPI Initialized Statement ********************/
+		/***** VIDEO.JS Player xAPI Initialized Statement ********************/
 		/*************************************************************************************/
 
-	    // myPlayer object is defined, so It is ready to listen events
-	    myPlayer.on("ready",function(){
-
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
-
+	    function send_initialized() {
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
@@ -83,9 +173,12 @@
 	        // get user agent header string
 	        var userAgent = navigator.userAgent.toString();
 
-
 	        // get user volume
 	        var volume = formatFloat(myPlayer.volume());
+
+	        // get quality
+        	var quality = (myPlayer.videoHeight() < myPlayer.videoWidth())? myPlayer.videoHeight():videoWidth();
+
 
 	        // prepare the xAPI initialized statement
 	        var initializedStmt =
@@ -123,6 +216,7 @@
 	                        "https://w3id.org/xapi/video/extensions/full-screen": fullScreenOrNot,
 	                        "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
 	                        "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
+	                        "https://w3id.org/xapi/video/extensions/quality": quality,
 	                        "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
 	                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
 	                        "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
@@ -139,7 +233,7 @@
 	        ADL.XAPIWrapper.sendStatement(initializedStmt, function(resp, obj){
 	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
             console.log(initializedStmt);
-	    });
+	    }
 
 		/***************************************************************************************/
 		/***** VIDEO.JS CC-Subtitle Track Change Event | xAPI Interacted Statement **********************************/
@@ -153,9 +247,6 @@
         		if(sendCCSubtitle) {
 	    			console.log("sendCCSubtitle: " + sendCCSubtitle);
 	        		sendCCSubtitle = false;
-
-			        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-			        var objectID = myPlayer.currentSrc().toString();
 
 			        // get the current date and time and throw it into a variable for xAPI timestamp
 			        var dateTime = new Date();
@@ -233,24 +324,23 @@
 		/***** VIDEO.JS Played Event | xAPI Played Statement **********************************/
 		/*************************************************************************************/
 
-	    myPlayer.on("play",function(){
+	    myPlayer.on("play",function() {
+//	    	myPlayer.currentTime(20);
+			if(started == false) {
+				video_start();
+			}
+
           // If user is seaking, skip the play event
           if (skipPlayEvent !== true) {
+          		seekStart = null; //reset seek if not reset
               
               // get the current date and time and throw it into a variable for xAPI timestamp
     	        var dateTime = new Date();
     	        var timeStamp = dateTime.toISOString();
 
     	        // get the current time position in the video
-    	        var resultExtTime = formatFloat(myPlayer.currentTime());
-
-    	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-    	        var objectID = myPlayer.currentSrc().toString();
-              
-                // get played segments of video from timeRange object and store in variable
-                var playedSegments = timeRangesToString(myPlayer.tech(true).played());
-                playedSegments = playedSegments.join("[,]");
-                console.log("played segments:" + playedSegments);
+    	        var resultExtTime = fixed_play_time(formatFloat(myPlayer.currentTime()));
+    	        start_played_segment(resultExtTime);
 
     	        var playedStmt =
     	        {
@@ -277,7 +367,6 @@
     	            "result": {
     	                "extensions": {
     	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
-                            "https://w3id.org/xapi/video/extensions/played-segments": playedSegments
     	                }
     	            },
     	            "context": {
@@ -322,23 +411,15 @@
 
     	        // get the current time position in the video
     	        var resultExtTime = formatFloat(myPlayer.currentTime());
-                
-
-    	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-    	        var objectID = myPlayer.currentSrc().toString();
+    	        end_played_segment(resultExtTime);
 
                 // get the progress percentage and put it in a variable called percentProgress
-                currentTime = myPlayer.currentTime();
-                duration = myPlayer.duration();
-                var percentTime = (currentTime / duration );
-                var percentProgress = percentTime.toPrecision(1);
-                console.log("video progress percentage:" + percentProgress +".");
-              
-                // get played segments of video from timeRange object and store in variable
-                var playedSegments = timeRangesToString(myPlayer.tech(true).played());
-                playedSegments = playedSegments.join("[,]");
-                console.log("played segments:" + playedSegments);              
-
+               // currentTime = myPlayer.currentTime();
+               // duration = myPlayer.duration();
+               // var percentTime = (currentTime / duration );
+               // var percentProgress = percentTime.toPrecision(1);
+                var progress = get_progress();
+                console.log("video progress percentage:" + progress +".");
               
     	        var pausedStmt =
     	        {
@@ -365,8 +446,8 @@
     	            "result": {
     	                "extensions": {
     	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
-                            "https://w3id.org/xapi/video/extensions/progress": percentProgress,
-                            "https://w3id.org/xapi/video/extensions/played-segments": playedSegments
+                            "https://w3id.org/xapi/video/extensions/progress": progress,
+                            "https://w3id.org/xapi/video/extensions/played-segments": played_segments
     	                }
     	            },
     	            "context": {
@@ -416,9 +497,6 @@
             var percentTime = (currentTime / duration );
             var percentProgress = percentTime.toPrecision(1);
             console.log("video progress percentage:" + percentProgress +".");            
-
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
 
 	        var completedStmt =
 	        {
@@ -490,13 +568,18 @@
 	        myPlayer.on("seeking", function() {
 	            if(seekStart === null) {
 	                seekStart = previousTime;
+	            	console.log('seek start: ' + seekStart);
 	            }
 	        });
             
         
 	   function send_seeked() {
-	       
-           console.log("seeked:" + seekStart + "[.]" +currentTime);
+	       	if(Math.abs(seekStart - currentTime) < 1) //Ignore seeking if seeked for less than 1 second gap in video
+	       	{
+	       		seekStart = null; //reset seek
+				return; 
+			}
+           	console.log("seeked:" + seekStart + "[.]" +currentTime);
                 
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
@@ -504,9 +587,8 @@
 
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
-
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
+	        end_played_segment(seekStart);
+	        start_played_segment(currentTime);
 
 	        var seekedStmt =
 	        {
@@ -551,6 +633,9 @@
 	            },
 	            "timestamp": timeStamp
 	        };
+
+	        seekStart = null; //reset seek
+
 	        //send seeked statement to the LRS
 	        console.log("seeked statement sent");
    	        ADL.XAPIWrapper.sendStatement(seekedStmt, function(resp, obj){
@@ -589,10 +674,6 @@
             var percentProgress = percentTime.toPrecision(1);
             console.log("video progress percentage:" + percentProgress +".");            
 
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
-            
-            
 	        var terminatedStmt =
 	        {
 	            "actor": actor,
@@ -671,9 +752,6 @@
 
 	        // get the current time position in the video
 	        var resultExtTime = formatFloat(myPlayer.currentTime());
-
-	        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-	        var objectID = myPlayer.currentSrc().toString();
 
 	        // get user volume and return it as a percentage
 	        var isMuted = myPlayer.muted();
@@ -757,9 +835,6 @@
 		        // get the current time position in the video
 		        var resultExtTime = formatFloat(myPlayer.currentTime());
 
-		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-		        var objectID = myPlayer.currentSrc().toString();
-
 		        // get the current screen size
 		        var screenSize = "";
 		        screenSize += screen.width + "x" + screen.height;
@@ -830,9 +905,6 @@
 
 		        // get the current time position in the video
 		        var resultExtTime = formatFloat(myPlayer.currentTime());
-
-		        // VideoJs suppors alternate video formats, so get exact URL for the xAPI Activity Object ID
-		        var objectID = myPlayer.currentSrc().toString();
 
 		        // get the current screen size
 		        var screenSize = "";
