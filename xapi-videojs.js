@@ -602,6 +602,7 @@
 	            previousTime = currentTime;
 	            currentTime = formatFloat(myPlayer.currentTime());
 	            check_completion();
+	            check_volumechange();
 	        });
 
 	        myPlayer.on("seeking", function() {
@@ -763,27 +764,23 @@
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
 		/*************************************************************************************/
-		myPlayer.controlBar.volumePanel.volumeControl.on("slideractive", function() {
-			volumeSliderActive = true;
+		var volume_changed_on = null, volume_changed_at = 0;
+		myPlayer.on("volumechange",function() {		
+			var currentTimestamp = (new Date()).getTime();
+			volume_changed_on = currentTimestamp;
+			volume_changed_at = currentTime;
 		});
-		myPlayer.controlBar.volumePanel.volumeControl.on("sliderinactive", function() {
-			console.log('event sliderinactive: send volume change statement');
-			send_volumechange();
-			volumeSliderActive = false;
-		});
-		myPlayer.on("volumechange",function() {
-			if(!volumeSliderActive) {
-				console.log('event volumechange (and volumeSliderActive is false): send volume change statement');
-				send_volumechange();
+		function check_volumechange() {
+			var currentTimestamp = (new Date()).getTime();
+			if(volume_changed_on != null && currentTimestamp > volume_changed_on + 2000) {
+				send_volumechange(volume_changed_on, volume_changed_at);			
+				volume_changed_on = null;
 			}
-		});
-		function send_volumechange() {
+		}
+		function send_volumechange(volume_changed_on, volume_changed_at) {
 			// get the current date and time and throw it into a variable for xAPI timestamp
-	        var dateTime = new Date();
+	        var dateTime = new Date(volume_changed_on);
 	        var timeStamp = dateTime.toISOString();
-
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // get user volume and return it as a percentage
 	        var isMuted = myPlayer.muted();
@@ -821,7 +818,7 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+	                    "https://w3id.org/xapi/video/extensions/time": volume_changed_at
 	                }
 	            },
 	            "context": {
