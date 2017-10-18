@@ -160,10 +160,6 @@
 	        for (var i = 0; i < tracks.length; i++) {
 	          var track = tracks[i];
 
-	          // If captions and subtitles are enabled mark track mode as "showing".
-	          if (track.kind === 'captions' || track.kind === 'subtitles') {
-	            track.mode = 'showing';
-	          }
 	          // If it is showing then CC is enabled and determine the language
 	          if (track.mode ==='showing') {
 	              var ccEnabled = true;
