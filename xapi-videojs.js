@@ -89,7 +89,7 @@
 			var progress = 1 * (progress_length / myPlayer.duration()).toFixed(2);
 			return progress;
         }
-
+        var terminate_player = false;
         function video_start() {
         	started = true;
         	var myparams = [];
@@ -127,8 +127,28 @@
         		myPlayer.currentTime(time);
         		console.log(time);
         	}
+        	if(	ret != undefined 
+        		&& ret.statements != undefined 
+        		&& ret.statements[0] != undefined 
+        		&& ret.statements[0]['result'] != undefined 
+        		&& ret.statements[0]['result']['extensions'] != undefined
+        		&& ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/progress'] != undefined
+        		) {
+        		var progress = 1 * ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/progress'];
+        		if(progress == 1)
+        		sent_completed = true;
+        		console.log(progress);
+        	}
+
 
         	send_initialized();
+        	window.addEventListener("beforeunload", function (e) {
+        		terminate_player = true;
+        		if(myPlayer.paused())
+        			TerminateMyPlayer();
+        		else
+        			myPlayer.pause();
+        	});
         }
 
 		/***************************************************************************************/
@@ -160,10 +180,6 @@
 	        for (var i = 0; i < tracks.length; i++) {
 	          var track = tracks[i];
 
-	          // If captions and subtitles are enabled mark track mode as "showing".
-	          if (track.kind === 'captions' || track.kind === 'subtitles') {
-	            track.mode = 'showing';
-	          }
 	          // If it is showing then CC is enabled and determine the language
 	          if (track.mode ==='showing') {
 	              var ccEnabled = true;
@@ -413,11 +429,7 @@
     	        var resultExtTime = formatFloat(myPlayer.currentTime());
     	        end_played_segment(resultExtTime);
 
-                // get the progress percentage and put it in a variable called percentProgress
-               // currentTime = myPlayer.currentTime();
-               // duration = myPlayer.duration();
-               // var percentTime = (currentTime / duration );
-               // var percentProgress = percentTime.toPrecision(1);
+                // get the progress percentage and put it in a variable called progress
                 var progress = get_progress();
                 console.log("video progress percentage:" + progress +".");
               
@@ -468,8 +480,11 @@
     	        //send paused statement to the LRS
     	        console.log("paused statement sent");
                 ADL.XAPIWrapper.sendStatement(pausedStmt, function(resp, obj){
-                console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
+                	console.log("Response from LRS: " + resp.status + " - " + resp.statusText);
+            	});
                 console.log(pausedStmt);
+                if(terminate_player)
+	                	TerminateMyPlayer();
           } else {
               //skip subsequent play Event
               skipPlayEvent = true;
@@ -478,25 +493,48 @@
 
 
 		/***************************************************************************************/
-		/***** VIDEO.JS Ended Event | xAPI Completed Statement **********************************/
+		/***** VIDEO.JS Video Completion | xAPI Completed Statement **********************************/
 		/*************************************************************************************/
+		var next_completion_check = 0;
+		var sent_completed = false;
+		function check_completion() {
+			if(sent_completed)
+			{
+				//console.log("completed statement already sent");
+				return;
+			}
 
-		myPlayer.on("ended",function(){
-            
+			var currentTimestamp = (new Date()).getTime();
+			
+			if(currentTimestamp < next_completion_check) {
+				//console.log(new Date(next_completion_check) + " in " + (next_completion_check - currentTimestamp)/1000 + " seconds");
+				return;
+			}
+			var length = myPlayer.duration();
+			//console.log("length: " + length);
+			if(length <= 0)
+				return;
+
+			var progress = get_progress();
+			if(progress >= 1) {
+				sent_completed = true;
+				send_completed();
+			}
+			var remaining_seconds = (1 - progress) * length;
+			//console.log("remaining_seconds: " + remaining_seconds);
+			next_completion_check = currentTimestamp + remaining_seconds.toFixed(3) * 1000;
+			console.log("Progress: " + progress + " currentTimestamp: " + currentTimestamp + " next completion check in " + (next_completion_check - currentTimestamp)/1000 + " seconds");
+		}
+		
+		function send_completed() {    
             
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
-	        var timeStamp = dateTime.toISOString();
+	        var timeStamp = dateTime.toISOString();          
 
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
-
-            // get the progress percentage and put it in a variable called percentProgress
-            currentTime = myPlayer.currentTime();
-            duration = myPlayer.duration();
-            var percentTime = (currentTime / duration );
-            var percentProgress = percentTime.toPrecision(1);
-            console.log("video progress percentage:" + percentProgress +".");            
+            // get the progress percentage and put it in a variable called progress
+            var progress = get_progress();
+            console.log("video progress percentage:" + progress +".");
 
 	        var completedStmt =
 	        {
@@ -522,8 +560,8 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
-                        "https://w3id.org/xapi/video/extensions/progress": percentProgress
+	                    "https://w3id.org/xapi/video/extensions/time": currentTime,
+                        "https://w3id.org/xapi/video/extensions/progress": progress
 	                }
 	            },
 	            "context": {
@@ -547,8 +585,8 @@
 	        console.log("Response from LRS: " + resp.status + " - " + resp.statusText);});
             console.log(completedStmt);            
             // create a modal window for the user to terminate the session and dispose of the player
-            terminateModal();
-	    });
+            //terminateModal();
+	    }
 
 		/***************************************************************************************/
 		/***** VIDEO.JS  Seekable Event | xAPI Seeked Statement *******************************/
@@ -563,6 +601,8 @@
 	        myPlayer.on("timeupdate", function() {
 	            previousTime = currentTime;
 	            currentTime = formatFloat(myPlayer.currentTime());
+	            check_completion();
+	            check_volumechange();
 	        });
 
 	        myPlayer.on("seeking", function() {
@@ -585,8 +625,7 @@
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
 
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
+	        // change the played segment in the video
 	        end_played_segment(seekStart);
 	        start_played_segment(currentTime);
 
@@ -663,16 +702,10 @@
 	        // get the current date and time and throw it into a variable for xAPI timestamp
 	        var dateTime = new Date();
 	        var timeStamp = dateTime.toISOString();
-
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
             
-            // get the progress percentage and put it in a variable called percentProgress
-            currentTime = myPlayer.currentTime();
-            duration = myPlayer.duration();
-            var percentTime = (currentTime / duration );
-            var percentProgress = percentTime.toPrecision(1);
-            console.log("video progress percentage:" + percentProgress +".");            
+            // get the progress percentage and put it in a variable called progress
+            var progress = get_progress();
+            console.log("video progress percentage:" + progress +".");           
 
 	        var terminatedStmt =
 	        {
@@ -698,8 +731,8 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime,
-                        "https://w3id.org/xapi/video/extensions/progress": percentProgress
+	                    "https://w3id.org/xapi/video/extensions/time": currentTime,
+                        "https://w3id.org/xapi/video/extensions/progress": progress
 	                }
 	            },
 	            "context": {
@@ -731,27 +764,23 @@
 		/***************************************************************************************/
 		/***** VIDEO.JS VolumeChange Event | xAPI Interacted Statement ************************/
 		/*************************************************************************************/
-		myPlayer.controlBar.volumePanel.volumeControl.on("slideractive", function() {
-			volumeSliderActive = true;
+		var volume_changed_on = null, volume_changed_at = 0;
+		myPlayer.on("volumechange",function() {		
+			var currentTimestamp = (new Date()).getTime();
+			volume_changed_on = currentTimestamp;
+			volume_changed_at = currentTime;
 		});
-		myPlayer.controlBar.volumePanel.volumeControl.on("sliderinactive", function() {
-			console.log('event sliderinactive: send volume change statement');
-			send_volumechange();
-			volumeSliderActive = false;
-		});
-		myPlayer.on("volumechange",function() {
-			if(!volumeSliderActive) {
-				console.log('event volumechange (and volumeSliderActive is false): send volume change statement');
-				send_volumechange();
+		function check_volumechange() {
+			var currentTimestamp = (new Date()).getTime();
+			if(volume_changed_on != null && currentTimestamp > volume_changed_on + 2000) {
+				send_volumechange(volume_changed_on, volume_changed_at);			
+				volume_changed_on = null;
 			}
-		});
-		function send_volumechange() {
+		}
+		function send_volumechange(volume_changed_on, volume_changed_at) {
 			// get the current date and time and throw it into a variable for xAPI timestamp
-	        var dateTime = new Date();
+	        var dateTime = new Date(volume_changed_on);
 	        var timeStamp = dateTime.toISOString();
-
-	        // get the current time position in the video
-	        var resultExtTime = formatFloat(myPlayer.currentTime());
 
 	        // get user volume and return it as a percentage
 	        var isMuted = myPlayer.muted();
@@ -789,7 +818,7 @@
 	            },
 	            "result": {
 	                "extensions": {
-	                    "https://w3id.org/xapi/video/extensions/time": resultExtTime
+	                    "https://w3id.org/xapi/video/extensions/time": volume_changed_at
 	                }
 	            },
 	            "context": {
