@@ -8,9 +8,3 @@ More documentation will be provided as this reference implementation is improved
 Video Profile Documentation: https://liveaspankaj.gitbooks.io/xapi-video-profile/content/
 
 Video Profile IRI: https://w3id.org/xapi/video
-
-VideoJS: http://videojs.com. 
-
-xAPI: https://xapi.adlnet.gov 
-
-xAPI Profile Specification: http://datainteroperability.org/research-activity-xapi-data-interoperability/xapi-profiles/. 
