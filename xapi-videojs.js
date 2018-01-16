@@ -18,7 +18,8 @@
     	var played_segments_segment_start = null;
     	var played_segments_segment_end = null;
     	var started	= false;
-
+        
+        
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
         var tracks = myPlayer.textTracks();
         
@@ -89,7 +90,7 @@
 			var progress = 1 * (progress_length / myPlayer.duration()).toFixed(2);
 			return progress;
         }
-        var terminate_player = false;
+        var terminate_player = false;   
         function video_start() {
         	started = true;
         	var myparams = [];
@@ -142,6 +143,7 @@
 
 
         	send_initialized();
+            
         	window.addEventListener("beforeunload", function (e) {
         		terminate_player = true;
         		if(myPlayer.paused())
@@ -193,8 +195,8 @@
 	        var volume = formatFloat(myPlayer.volume());
 
 	        // get quality
-        	var quality = (myPlayer.videoHeight() < myPlayer.videoWidth())? myPlayer.videoHeight():videoWidth();
-
+        	//var quality = (myPlayer.videoHeight() < myPlayer.videoWidth())? myPlayer.videoHeight():videoWidth();/
+            // console.log("quality is:" + quality);
 
 	        // prepare the xAPI initialized statement
 	        var initializedStmt =
@@ -232,7 +234,7 @@
 	                        "https://w3id.org/xapi/video/extensions/full-screen": fullScreenOrNot,
 	                        "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
 	                        "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
-	                        "https://w3id.org/xapi/video/extensions/quality": quality,
+	                        // "https://w3id.org/xapi/video/extensions/quality": quality,
 	                        "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
 	                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
 	                        "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
@@ -792,7 +794,7 @@
 	           var volumeChange = formatFloat(myPlayer.volume());
 	            }
             
-	       console.log("volume changed to: " + volumeChange);
+	       console.log("volume set to: " + volumeChange);
 
 	        var volChangeStmt =
 	        {
