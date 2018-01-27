@@ -27,9 +27,9 @@
     // ADL LRS Configuration - Basic Auth for demo purposes  
     if(ADL.XAPIWrapper.lrs.auth == undefined) {
         var conf = {
-           "endpoint" : "https://video_profile_testing.lrs.veracity.it/xapi/",
-           "auth" : "Basic " + toBase64('700aead5daad4f619cd0d420477befd5:68438912e2b4450d8dc400698b20398f'),
-           "actor" : '{"mbox": "mailto:jhaag@veracity.it","name": "JHaag","objectType": "Agent"}'
+           "endpoint" : "https://lrs.adlnet.gov/xAPI/",
+           "auth" : "Basic " + toBase64('video-profile:getout'),
+           "actor" : '{"mbox": "mailto:someuser@example.com","name": "Video User","objectType": "Agent"}'
         };
         ADL.XAPIWrapper.changeConfig(conf); 
     }  
