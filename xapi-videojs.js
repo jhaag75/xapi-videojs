@@ -6,7 +6,6 @@
 	var XAPIVideoJS = function(target, src, options) {
 		var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
 
-
 	    // Global Variables & common functions
 	    var myPlayer =  videojs(target);
         var objectID = myPlayer.currentSrc().toString();
@@ -195,7 +194,7 @@
 	        var volume = formatFloat(myPlayer.volume());
 
 	        // get quality
-        	//var quality = (myPlayer.videoHeight() < myPlayer.videoWidth())? myPlayer.videoHeight():videoWidth();/
+        	// var quality = (myPlayer.videoHeight() < myPlayer.videoWidth())? myPlayer.videoHeight():videoWidth();/
             // console.log("quality is:" + quality);
 
 	        // prepare the xAPI initialized statement
@@ -213,10 +212,10 @@
 	                "id": objectID,
 	                "definition": {
 	                    "name": {
-	                        "en-US": "Ocean Life"
+	                        "en-US": activityTitle
 	                    },
 	                    "description": {
-	                        "en-US": "Video of ocean life."
+	                        "en-US": activityDesc
 	                    },
 	                    "type": "https://w3id.org/xapi/video/activity-type/video"
 	                },
@@ -298,10 +297,10 @@
 			                "id": objectID,
 			                "definition": {
 			                    "name": {
-			                        "en-US": "Ocean Life"
+			                        "en-US": activityTitle
 			                    },
 			                    "description": {
-			                        "en-US": "Video of ocean life."
+			                        "en-US": activityDesc
 			                    },
 			                    "type": "https://w3id.org/xapi/video/activity-type/video"
 			                },
@@ -373,10 +372,10 @@
     	                "id": objectID,
     	                "definition": {
     	                    "name": {
-    	                        "en-US": "Ocean Life"
+    	                        "en-US": activityTitle
     	                    },
     	                    "description": {
-    	                        "en-US": "Video of ocean life."
+    	                        "en-US": activityDesc
     	                    },
     	                    "type": "https://w3id.org/xapi/video/activity-type/video"
     	                },
@@ -448,10 +447,10 @@
     	                "id": objectID,
     	                "definition": {
     	                    "name": {
-    	                        "en-US": "Ocean Life"
+    	                        "en-US": activityTitle
     	                    },
     	                    "description": {
-    	                        "en-US": "Video of ocean life."
+    	                        "en-US": activityDesc
     	                    },
     	                    "type": "https://w3id.org/xapi/video/activity-type/video"
     	                },
@@ -551,10 +550,10 @@
 	                "id": objectID,
 	                "definition": {
 	                    "name": {
-	                        "en-US": "Ocean Life"
+	                        "en-US": activityTitle
 	                    },
 	                    "description": {
-	                        "en-US": "Video of ocean life."
+	                        "en-US": activityDesc
 	                    },
 	                    "type": "https://w3id.org/xapi/video/activity-type/video"
 	                },
@@ -644,10 +643,10 @@
 	                "id": objectID,
 	                "definition": {
 	                    "name": {
-	                        "en-US": "Ocean Life"
+	                        "en-US": activityTitle
 	                    },
 	                    "description": {
-	                        "en-US": "Video of ocean life."
+	                        "en-US": activityDesc
 	                    },
 	                    "type": "https://w3id.org/xapi/video/activity-type/video"
 	                },
@@ -722,10 +721,10 @@
 	                "id": objectID,
 	                "definition": {
 	                    "name": {
-	                        "en-US": "Ocean Life"
+	                        "en-US": activityTitle
 	                    },
 	                    "description": {
-	                        "en-US": "Video of ocean life."
+	                        "en-US": activityDesc
 	                    },
 	                    "type": "https://w3id.org/xapi/video/activity-type/video"
 	                },
@@ -809,10 +808,10 @@
 	                "id": objectID,
 	                "definition": {
 	                    "name": {
-	                        "en-US": "Ocean Life"
+	                        "en-US": activityTitle
 	                    },
 	                    "description": {
-	                        "en-US": "Video of ocean life."
+	                        "en-US": activityDesc
 	                    },
 	                    "type": "https://w3id.org/xapi/video/activity-type/video"
 	                },
@@ -888,10 +887,10 @@
 		                "id": objectID,
 		                "definition": {
 		                    "name": {
-		                        "en-US": "Ocean Life"
+		                        "en-US": activityTitle
 		                    },
 		                    "description": {
-		                        "en-US": "Video of ocean life."
+		                        "en-US": activityDesc
 		                    },
 		                    "type": "https://w3id.org/xapi/video/activity-type/video"
 		                },
@@ -959,10 +958,10 @@
 		                "id": objectID,
 		                "definition": {
 		                    "name": {
-		                        "en-US": "Ocean Life"
+		                        "en-US": activityTitle
 		                    },
 		                    "description": {
-		                        "en-US": "Video of ocean life."
+		                        "en-US": activityDesc
 		                    },
 		                    "type": "https://w3id.org/xapi/video/activity-type/video"
 		                },
