@@ -30,8 +30,6 @@
 
 
 <script type="text/javascript">
-    var activityTitle = "Ocean Life";
-    var activityDesc = "Video of ocean life.";
     
     // ADL LRS Configuration - Basic Auth for demo purposes  
     if(ADL.XAPIWrapper.lrs.auth == undefined) {
@@ -39,7 +37,8 @@
            "endpoint" : "https://lrs.adlnet.gov/xAPI/",
            "auth" : "Basic " + toBase64('video-profile:getout'),
            "actor" : '{"mbox": "mailto:someuser@example.com","name": "Video User","objectType": "Agent"}'
-        };
+        };   
+        
         ADL.XAPIWrapper.changeConfig(conf);       
     }
     // put into variables - title and description from the metadata DIV above the video element 

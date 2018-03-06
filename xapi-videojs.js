@@ -1002,4 +1002,3 @@
 
 	ADL.XAPIVideoJS = XAPIVideoJS;
 }(window.ADL = window.ADL || {}));
-
