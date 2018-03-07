@@ -73,7 +73,7 @@ function isDate(date) {
 }
 
 (function(ADL){
-    log.debug = false;
+    log.debug = true;
 
     function getByteLen(normal_val) {
         // Force string type

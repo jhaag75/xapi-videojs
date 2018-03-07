@@ -36,7 +36,12 @@
         var conf = {
            "endpoint" : "https://lrs.adlnet.gov/xAPI/",
            "auth" : "Basic " + toBase64('video-profile:getout'),
-           "actor" : '{"mbox": "mailto:someuser@example.com","name": "Video User","objectType": "Agent"}'
+           "actor" : '{"mbox": "mailto:jlh@example.com","name": "Video User","objectType": "Agent"}'
+    
+        //   "endpoint" : "https://video_profile_testing.lrs.veracity.it:443/xapi/",
+        //   "auth" : "Basic " + toBase64('700aead5daad4f619cd0d420477befd5:68438912e2b4450d8dc400698b20398f'),
+        //   "actor" : '{"mbox": "mailto:someuser@example.com","name": "Video User","objectType": "Agent"}',
+            
         };   
         
         ADL.XAPIWrapper.changeConfig(conf);       
@@ -46,6 +51,7 @@
     var activityDesc = document.getElementById('viddesc').getAttribute('content');  
     
     ADL.XAPIVideoJS("vid1");
+    
     
 </script>
 
