@@ -4,11 +4,7 @@
 
     var XAPIVideoJS = function (target, src, options) {
         var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
-        
-        /* Toggle registration to test for different scenarios below. Use the static UUID for testing resuming of a paused video attempt. */
-        
-        //var registration = ADL.ruuid();
-        var registration = "c802d173-b9c4-5fa7-b4dc-1db1e75bdf26";
+        var registration = ADL.ruuid();
 
         // Global Variables & common functions
         var myPlayer = videojs(target);
@@ -16,11 +12,13 @@
         var sessionID = ADL.ruuid();
         var skipPlayEvent = false;
         var sendCCSubtitle = false;
+        var ccLanguage = "";
         var volumeSliderActive = false;
         var played_segments = "";
         var played_segments_segment_start = null;
         var played_segments_segment_end = null;
         var started = false;
+        
 
 
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
@@ -33,6 +31,7 @@
 
             return +(parseFloat(number).toFixed(3));
         }
+        
 
         // other functions
         function start_played_segment(start_time) {
@@ -187,9 +186,11 @@
             var playbackSize = "";
             playbackSize += myPlayer.currentWidth() + "x" + myPlayer.currentHeight();
 
-
             // get the playback rate of the video
             var playbackRate = myPlayer.playbackRate();
+            
+            // vet the video length
+            var length = myPlayer.duration();
 
 
             //Enable Captions/Subtitles
@@ -243,12 +244,11 @@
                         }]
                     },
                     "extensions": {
+                        "https://w3id.org/xapi/video/extensions/length": length,
                         "https://w3id.org/xapi/video/extensions/full-screen": fullScreenOrNot,
                         "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
                         "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
-                        // "https://w3id.org/xapi/video/extensions/quality": quality,
-                        "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
-                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
+                        "https://w3id.org/xapi/video/extensions/cc-enabled": sendCCSubtitle,
                         "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
                         "https://w3id.org/xapi/video/extensions/user-agent": userAgent,
                         "https://w3id.org/xapi/video/extensions/volume": volume,
@@ -292,7 +292,6 @@
 
                         // If it is showing then CC is enabled and determine the language
                         if (track.mode === 'showing') {
-                            var ccEnabled = true;
                             var ccLanguage = track.language;
                         }
                     }
@@ -333,7 +332,7 @@
                             },
                             "extensions": {
                                 "https://w3id.org/xapi/video/extensions/session-id": sessionID,
-                                "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
+                                "https://w3id.org/xapi/video/extensions/cc-enabled": sendCCSubtitle,
                                 "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
                             }
                         },
@@ -359,6 +358,9 @@
             if (started == false) {
                 video_start();
             }
+            
+            // vet the video length
+            var length = myPlayer.duration();
 
             // If user is seaking, skip the play event
             if (skipPlayEvent !== true) {
@@ -371,6 +373,7 @@
                 // get the current time position in the video
                 var resultExtTime = fixed_play_time(formatFloat(myPlayer.currentTime()));
                 start_played_segment(resultExtTime);
+
 
                 var playedStmt = {
                     "actor": actor,
@@ -406,6 +409,7 @@
                             }]
                         },
                         "extensions": {
+                            "https://w3id.org/xapi/video/extensions/length": length,
                             "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
                         }
@@ -436,6 +440,9 @@
                 // get the current date and time and throw it into a variable for xAPI timestamp
                 var dateTime = new Date();
                 var timeStamp = dateTime.toISOString();
+                
+                // get the video length
+                var length = myPlayer.duration();
 
                 // get the current time position in the video
                 var resultExtTime = formatFloat(myPlayer.currentTime());
@@ -444,6 +451,7 @@
                 // get the progress percentage and put it in a variable called progress
                 var progress = get_progress();
                 console.log("video progress percentage:" + progress + ".");
+            
 
                 if (progress >= 1) {
                     send_completed();
@@ -486,6 +494,7 @@
                                 }]
                             },
                             "extensions": {
+                                "https://w3id.org/xapi/video/extensions/length": length,
                                 "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
                             }
@@ -531,7 +540,7 @@
                 return;
             }
             var length = myPlayer.duration();
-            //console.log("length: " + length);
+            console.log("length: " + length);
             if (length <= 0)
                 return;
 
@@ -549,6 +558,8 @@
             // get the current date and time and throw it into a variable for xAPI timestamp
             var dateTime = new Date();
             var timeStamp = dateTime.toISOString();
+            
+            var length = myPlayer.duration();
 
             // get the progress percentage and put it in a variable called progress
             var progress = get_progress();
@@ -590,7 +601,9 @@
                         }]
                     },
                     "extensions": {
-                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+                        "https://w3id.org/xapi/video/extensions/session-id": sessionID,
+                        "https://w3id.org/xapi/video/extensions/length": length,
+                        
 
                     }
                 },
@@ -723,6 +736,8 @@
             // get the progress percentage and put it in a variable called progress
             var progress = get_progress();
             console.log("video progress percentage:" + progress + ".");
+            
+            var length = myPlayer.duration();
 
             var terminatedStmt = {
                 "actor": actor,
@@ -759,6 +774,7 @@
                         }]
                     },
                     "extensions": {
+                        "https://w3id.org/xapi/video/extensions/length": length,
                         "https://w3id.org/xapi/video/extensions/session-id": sessionID
 
                     }
