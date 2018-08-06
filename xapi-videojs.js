@@ -12,12 +12,13 @@
         var sessionID = ADL.ruuid();
         var skipPlayEvent = false;
         var sendCCSubtitle = false;
-        var ccLanguage = "";
         var volumeSliderActive = false;
         var played_segments = "";
         var played_segments_segment_start = null;
         var played_segments_segment_end = null;
         var started = false;
+        var ccEnabled = false;
+        var ccLanguage = "";
         
 
 
@@ -192,7 +193,9 @@
             // vet the video length
             var length = myPlayer.duration();
 
-
+            var ccEnabled = false;
+            var ccLanguage = "";
+            
             //Enable Captions/Subtitles
             for (var i = 0; i < tracks.length; i++) {
                 var track = tracks[i];
@@ -201,7 +204,7 @@
                 if (track.mode === 'showing') {
                     var ccEnabled = true;
                     var ccLanguage = track.language;
-                }
+                } 
             }
             // get user agent header string
             var userAgent = navigator.userAgent.toString();
@@ -248,7 +251,8 @@
                         "https://w3id.org/xapi/video/extensions/full-screen": fullScreenOrNot,
                         "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
                         "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
-                        "https://w3id.org/xapi/video/extensions/cc-enabled": sendCCSubtitle,
+                        "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
+                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
                         "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
                         "https://w3id.org/xapi/video/extensions/user-agent": userAgent,
                         "https://w3id.org/xapi/video/extensions/volume": volume,
@@ -278,6 +282,9 @@
                 if (sendCCSubtitle) {
                     console.log("sendCCSubtitle: " + sendCCSubtitle);
                     sendCCSubtitle = false;
+                    ccEnabled = false;
+                    ccLanguage = "";
+                    
 
                     // get the current date and time and throw it into a variable for xAPI timestamp
                     var dateTime = new Date();
@@ -292,8 +299,9 @@
 
                         // If it is showing then CC is enabled and determine the language
                         if (track.mode === 'showing') {
+                            var ccEnabled = true;
                             var ccLanguage = track.language;
-                        }
+                        } 
                     }
 
                     // prepare the xAPI interacted statement
@@ -332,7 +340,7 @@
                             },
                             "extensions": {
                                 "https://w3id.org/xapi/video/extensions/session-id": sessionID,
-                                "https://w3id.org/xapi/video/extensions/cc-enabled": sendCCSubtitle,
+                                "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
                                 "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
                             }
                         },
