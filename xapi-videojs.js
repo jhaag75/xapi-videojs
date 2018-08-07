@@ -5,7 +5,11 @@
     var XAPIVideoJS = function (target, src, options) {
         var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
         var registration = ADL.ruuid();
-
+        
+        // Change registration VAR to Static UUID to preserve bookmarking/resuming of vide
+        //var registration = "96094a33-cc66-4d9a-8820-a0850ae2a4c1";
+            
+            
         // Global Variables & common functions
         var myPlayer = videojs(target);
         var objectID = myPlayer.currentSrc().toString();
@@ -20,7 +24,6 @@
         var ccEnabled = false;
         var ccLanguage = "";
         
-
 
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
         var tracks = myPlayer.textTracks();
@@ -247,6 +250,7 @@
                         }]
                     },
                     "extensions": {
+                        "https://w3id.org/xapi/video/extensions/completion-threshold": "1.0",
                         "https://w3id.org/xapi/video/extensions/length": length,
                         "https://w3id.org/xapi/video/extensions/full-screen": fullScreenOrNot,
                         "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
@@ -254,6 +258,8 @@
                         "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
                         "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
                         "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
+                        "https://w3id.org/xapi/video/extensions/frame-rate": "23.98",
+                        "https://w3id.org/xapi/video/extensions/quality": "960x400",
                         "https://w3id.org/xapi/video/extensions/user-agent": userAgent,
                         "https://w3id.org/xapi/video/extensions/volume": volume,
                         "https://w3id.org/xapi/video/extensions/session-id": sessionID
@@ -598,7 +604,8 @@
                     "completion": true,
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/time": currentTime,
-                        "https://w3id.org/xapi/video/extensions/progress": progress
+                        "https://w3id.org/xapi/video/extensions/progress": progress,
+                        "https://w3id.org/xapi/video/extensions/played-segments": played_segments
                     }
                 },
                 "context": {
@@ -611,6 +618,7 @@
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/session-id": sessionID,
                         "https://w3id.org/xapi/video/extensions/length": length,
+                        "https://w3id.org/xapi/video/extensions/completion-threshold": "1.0"
                         
 
                     }
@@ -771,7 +779,8 @@
                 "result": {
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/time": currentTime,
-                        "https://w3id.org/xapi/video/extensions/progress": progress
+                        "https://w3id.org/xapi/video/extensions/progress": progress,
+                        "https://w3id.org/xapi/video/extensions/played-segments": played_segments
                     }
                 },
                 "context": {
@@ -783,7 +792,8 @@
                     },
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/length": length,
-                        "https://w3id.org/xapi/video/extensions/session-id": sessionID
+                        "https://w3id.org/xapi/video/extensions/session-id": sessionID,
+                        "https://w3id.org/xapi/video/extensions/completion-threshold": "1.0"
 
                     }
                 },
