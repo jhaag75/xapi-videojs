@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 
-    <title>Video.js + xAPI Video Profile Example</title>
+    <title>Video.js + xAPI Video Profile Example - Ocean Life mp4, webm, ogv</title>
     <link href="video-js-6.1.0/video-js.css" rel="stylesheet">
     <script src="video-js-6.1.0/ie8/videojs-ie8.min.js"></script>
     <script src="video-js-6.1.0/video.js"></script>
@@ -11,9 +11,13 @@
     <script type="text/javascript" src="xapi-videojs.js"></script>
 
 </head>
-<body>
 
-  <video id="vid1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264" poster="http://vjs.zencdn.net/v/oceans.png" data-setup="{}">
+<body prefix="dcterms: http://purl.org/dc/terms/">
+
+  <div id="vidtitle" property="dcterms:title" content="Ocean Life"></div>
+  <div id="viddesc" property="dcterms:description" content="A short video clip of ocean lifeforms, used by videojs.com as part of their demo."></div>
+  
+  <video  id="vid1" class="video-js vjs-default-skin" controls preload="auto" width="640" height="264" poster="http://vjs.zencdn.net/v/oceans.png" data-setup="{}">
     <source src="http://vjs.zencdn.net/v/oceans.mp4" type="video/mp4">
     <source src="http://vjs.zencdn.net/v/oceans.webm" type="video/webm">
     <source src="http://vjs.zencdn.net/v/oceans.ogv" type="video/ogg">
@@ -30,14 +34,27 @@
     // ADL LRS Configuration - Basic Auth for demo purposes  
     if(ADL.XAPIWrapper.lrs.auth == undefined) {
         var conf = {
-           "endpoint" : "https://lrs.adlnet.gov/xapi/",
+           "endpoint" : "https://lrs.adlnet.gov/xAPI/",
            "auth" : "Basic " + toBase64('video-profile:getout'),
-            "actor" : '{"mbox": "mailto:jason.haag.ctr@adlnet.gov","name": "Jason Haag","objectType": "Agent"}'
-        };
-        ADL.XAPIWrapper.changeConfig(conf); 
+           "actor" : '{"mbox": "mailto:jlh@example.com","name": "Video User","objectType": "Agent"}'
+    
+        //   "endpoint" : "https://video_profile_testing.lrs.veracity.it:443/xapi/",
+        //   "auth" : "Basic " + toBase64('700aead5daad4f619cd0d420477befd5:68438912e2b4450d8dc400698b20398f'),
+        //   "actor" : '{"mbox": "mailto:someuser@example.com","name": "Video User","objectType": "Agent"}',
+            
+        };   
+        
+        ADL.XAPIWrapper.changeConfig(conf);       
     }
+    // put into variables - title and description from the metadata DIV above the video element 
+    var activityTitle = document.getElementById('vidtitle').getAttribute('content');
+    var activityDesc = document.getElementById('viddesc').getAttribute('content');  
+    
     ADL.XAPIVideoJS("vid1");
+    
+    
 </script>
+
 </body>
 
 </html>

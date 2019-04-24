@@ -1,14 +1,12 @@
 # xapi-videojs
-This  is a reference implementation of the xAPI Video Profile integrated with the VideoJS player (video player libarary that uses web standards). 
+This  is a reference implementation of the xAPI Video Profile integrated with the VideoJS player (video player libarary that uses web standards).
 
-More documentation will be provided as this reference implementation is improved. Enable the JavaScript/Developer Console in your browser view the log and what events are bing fired. This reference implementation is configured to use the ADL LRS, https://lrs.adlnet.gov. To see if the statements are being stored, reiew the JavaScript developer console in your browser or the ADL Statement Viewer: http://adlnet.github.io/xapi-statement-viewer. 
+It provides demos of using HTML5 video embeds (.mp4, .ogv, .webm) for xAPI video tracking. 
 
-Video Profile Documentation: https://liveaspankaj.gitbooks.io/xapi-video-profile/content/
+Video Profile Documentation: https://liveaspankaj.gitbooks.io/xapi-video-profile/content/. More documentation will be provided as this reference implementation is improved.  
+
+This reference implementation is configured to use the ADL LRS by default, https://lrs.adlnet.gov. To see if the statements are being sent, reiew the JavaScript developer console in your browser. You can also verify the statements are being stored in the ADL LRS by accessing the ADL Statement Viewer: http://adlnet.github.io/xapi-statement-viewer.
+
+Visit https://www.nextsoftwaresolutions.com/xapi-video-profile-demo/ for a full demo with an LRS.
 
 Video Profile IRI: https://w3id.org/xapi/video
-
-VideoJS: http://videojs.com. 
-
-xAPI: https://xapi.adlnet.gov 
-
-xAPI Profile Specification: http://datainteroperability.org/research-activity-xapi-data-interoperability/xapi-profiles/. 
