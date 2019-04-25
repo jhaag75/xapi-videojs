@@ -18,7 +18,6 @@
         var started = false;
         var ccEnabled = false;
         var ccLanguage = "";
-        
 
         // Get all text tracks for the current player to determine if there are any CC-Subtitles
         var tracks = myPlayer.textTracks();
@@ -179,8 +178,10 @@
             ) {
                 var progress = 1 * ret.statements[0]['result']['extensions']['https://w3id.org/xapi/video/extensions/progress'];
                 if (progress == 1)
-                // sent_completed = true;
+                {
+                    completion_sent = true;
                     console.log(progress);
+                }
             }
 
 
@@ -567,15 +568,13 @@
         /***** VIDEO.JS Video Completion | xAPI Completed Statement **********************************/
         /*************************************************************************************/
         var next_completion_check = 0;
-        // var sent_completed = false;
+        var completion_sent = false;
         function check_completion() {
-            /*
-			if(sent_completed)
+			if(completion_sent)
 			{
 				console.log("completed statement already sent");
 				return;
 			}
-            */
 
             var currentTimestamp = (new Date()).getTime();
 
@@ -598,7 +597,11 @@
         }
 
         function send_completed() {
-
+            if(completion_sent)
+            {
+                console.log("completed statement already sent");
+                return;
+            }
             // get the current date and time and throw it into a variable for xAPI timestamp
             var dateTime = new Date();
             var timeStamp = dateTime.toISOString();
@@ -665,6 +668,7 @@
             ADL.XAPIWrapper.sendStatement(completedStmt, function (resp, obj) {
                 console.log("Response from LRS: " + resp.status + " - " + resp.statusText);
             });
+            completion_sent = true;
             console.log(completedStmt);
             // create a modal window for the user to terminate the session and dispose of the player
             terminateModal();
