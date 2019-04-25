@@ -500,8 +500,7 @@
                 if (progress >= 1) {
                     send_completed();
 
-                } else {
-
+                }
                     var pausedStmt = {
                         "actor": actor,
                         "verb": {
@@ -552,8 +551,7 @@
                         console.log("Response from LRS: " + resp.status + " - " + resp.statusText);
                     });
                     console.log(pausedStmt);
-                }
-
+              
                 if (terminate_player)
                     TerminateMyPlayer();
             } else {
@@ -613,7 +611,7 @@
             console.log("video progress percentage:" + progress + ".");
 
             var duration = calculate_duration();
-            duration = "P" + formatFloat(duration) + "S";
+            duration = "PT" + formatFloat(duration).toFixed(2) + "S";
 
             var completedStmt = {
                 "actor": actor,
@@ -637,7 +635,7 @@
                     "objectType": "Activity"
                 },
                 "result": {
-                    "duration": calculate_duration(),
+                    "duration": duration,
                     "completion": true,
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/time": currentTime,
