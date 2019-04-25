@@ -688,7 +688,8 @@
         });
 
         myPlayer.on("seeking", function () {
-            if (seekStart === null) {
+            console.log("seeking", previousTime, myPlayer.currentTime(), seekStart);
+            if (seekStart === null && previousTime != 0 || seekStart == 0) {
                 seekStart = previousTime;
                 console.log('seek start: ' + seekStart);
             }
