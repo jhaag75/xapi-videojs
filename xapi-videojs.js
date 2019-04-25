@@ -4,12 +4,7 @@
 
     var XAPIVideoJS = function (target, src, options) {
         var actor = JSON.parse(ADL.XAPIWrapper.lrs.actor);
-        var registration = ADL.ruuid();
-        
-        // Change registration VAR to Static UUID to preserve bookmarking/resuming of vide
-        //var registration = "96094a33-cc66-4d9a-8820-a0850ae2a4c1";
-            
-            
+
         // Global Variables & common functions
         var myPlayer = videojs(target);
         var objectID = myPlayer.currentSrc().toString();
@@ -36,6 +31,17 @@
             return +(parseFloat(number).toFixed(3));
         }
         
+        function add_registration_if_exists(statement) {
+            if (typeof ADL.XAPIWrapper.lrs.registration == "string" && ADL.XAPIWrapper.lrs.registration.length == 36) {
+               // var registration = ADL.XAPIWrapper.lrs.registration;
+               if(typeof statement["context"] == undefined)
+                    statement["context"] = new Object();
+
+                statement["context"]["registration"] = ADL.XAPIWrapper.lrs.registration;
+            }
+
+            return statement;
+        }
 
         // other functions
         function start_played_segment(start_time) {
@@ -101,6 +107,30 @@
             var progress = 1 * (progress_length / myPlayer.duration()).toFixed(2);
             return progress;
         }
+
+        function calculate_duration() {
+            var arr, arr2;
+
+            //get played segments array
+            arr = (played_segments == "") ? [] : played_segments.split("[,]");
+            if (played_segments_segment_start != null) {
+                arr.push(played_segments_segment_start + "[.]" + formatFloat(myPlayer.currentTime()));
+            }
+
+            arr2 = [];
+            var duration = 0;
+            arr.forEach(function (v, i) {
+                arr2[i] = v.split("[.]");
+                arr2[i][0] *= 1;
+                arr2[i][1] *= 1;
+
+                if(arr2[i][1] > arr2[i][0])
+                    duration += arr2[i][1] - arr2[i][0];
+            });
+
+            return duration;
+        }
+
         var terminate_player = false;
 
         function video_start() {
@@ -112,15 +142,10 @@
             myparams['limit'] = 1;
 
             if (typeof ADL.XAPIWrapper.lrs.registration == "string" && ADL.XAPIWrapper.lrs.registration.length == 36) {
-                console.log('yes there is a registration in xAPIWrapper');
-                myparams['registration'] = registration;
-            } else {
-                console.log('use global var UUID for registration');
-                myparams['registration'] = registration;
+//                console.log('yes there is a registration in xAPIWrapper');
+                myparams['registration'] = ADL.XAPIWrapper.lrs.registration;
             }
-
-            console.log('registration is:' + registration);
-
+            
             ret = ADL.XAPIWrapper.getStatements(myparams);
             if (ret != undefined &&
                 ret.statements != undefined &&
@@ -243,7 +268,6 @@
                     "objectType": "Activity"
                 },
                 "context": {
-                    "registration": registration,
                     "contextActivities": {
                         "category": [{
                             "id": "https://w3id.org/xapi/video"
@@ -256,7 +280,6 @@
                         "https://w3id.org/xapi/video/extensions/screen-size": screenSize,
                         "https://w3id.org/xapi/video/extensions/video-playback-size": playbackSize,
                         "https://w3id.org/xapi/video/extensions/cc-enabled": ccEnabled,
-                        "https://w3id.org/xapi/video/extensions/cc-subtitle-lang": ccLanguage,
                         "https://w3id.org/xapi/video/extensions/speed": playbackRate + "x",
                         "https://w3id.org/xapi/video/extensions/frame-rate": "23.98",
                         "https://w3id.org/xapi/video/extensions/quality": "960x400",
@@ -268,6 +291,12 @@
                 },
                 "timestamp": timeStamp
             };
+
+            if(ccEnabled == true) {
+                initializedStmt["context"]["extensions"]["https://w3id.org/xapi/video/extensions/cc-subtitle-lang"] = ccLanguage; //Add Language extention only when ccEnabled
+            }
+
+            initializedStmt = add_registration_if_exists(initializedStmt);
             //send initialized statement to the LRS & show data in console
             console.log("initialized statement sent");
             ADL.XAPIWrapper.sendStatement(initializedStmt, function (resp, obj) {
@@ -338,7 +367,6 @@
                             }
                         },
                         "context": {
-                            "registration": registration,
                             "contextActivities": {
                                 "category": [{
                                     "id": "https://w3id.org/xapi/video"
@@ -353,6 +381,7 @@
                         "timestamp": timeStamp
                     };
 
+                    interactedStatement = add_registration_if_exists(interactedStatement);
                     //send CC-Subtitle change statement to the LRS
                     console.log("interacted statement (CC-Subtitle change) sent");
                     ADL.XAPIWrapper.sendStatement(interactedStatement, function (resp, obj) {
@@ -416,7 +445,6 @@
                         }
                     },
                     "context": {
-                        "registration": registration,
                         "contextActivities": {
                             "category": [{
                                 "id": "https://w3id.org/xapi/video"
@@ -431,6 +459,7 @@
                     "timestamp": timeStamp
                 };
 
+                playedStmt = add_registration_if_exists(playedStmt);
                 //send played statement to the LRS
                 console.log("played statement sent");
                 ADL.XAPIWrapper.sendStatement(playedStmt, function (resp, obj) {
@@ -501,7 +530,6 @@
                             }
                         },
                         "context": {
-                            "registration": registration,
                             "contextActivities": {
                                 "category": [{
                                     "id": "https://w3id.org/xapi/video"
@@ -515,6 +543,8 @@
                         },
                         "timestamp": timeStamp
                     };
+
+                    pausedStmt = add_registration_if_exists(pausedStmt);
                     //send paused statement to the LRS
                     console.log("paused statement sent");
                     ADL.XAPIWrapper.sendStatement(pausedStmt, function (resp, obj) {
@@ -579,6 +609,9 @@
             var progress = get_progress();
             console.log("video progress percentage:" + progress + ".");
 
+            var duration = calculate_duration();
+            duration = "P" + formatFloat(duration) + "S";
+
             var completedStmt = {
                 "actor": actor,
                 "verb": {
@@ -601,6 +634,7 @@
                     "objectType": "Activity"
                 },
                 "result": {
+                    "duration": calculate_duration(),
                     "completion": true,
                     "extensions": {
                         "https://w3id.org/xapi/video/extensions/time": currentTime,
@@ -609,7 +643,6 @@
                     }
                 },
                 "context": {
-                    "registration": registration,
                     "contextActivities": {
                         "category": [{
                             "id": "https://w3id.org/xapi/video"
@@ -625,6 +658,8 @@
                 },
                 "timestamp": timeStamp
             };
+
+            completedStmt = add_registration_if_exists(completedStmt);
             //send completed statement to the LRS
             console.log("completed statement sent");
             ADL.XAPIWrapper.sendStatement(completedStmt, function (resp, obj) {
@@ -704,7 +739,6 @@
                     }
                 },
                 "context": {
-                    "registration": registration,
                     "contextActivities": {
                         "category": [{
                             "id": "https://w3id.org/xapi/video"
@@ -717,6 +751,8 @@
                 },
                 "timestamp": timeStamp
             };
+
+            seekedStmt = add_registration_if_exists(seekedStmt);
 
             seekStart = null; //reset seek
 
@@ -784,7 +820,6 @@
                     }
                 },
                 "context": {
-                    "registration": registration,
                     "contextActivities": {
                         "category": [{
                             "id": "https://w3id.org/xapi/video"
@@ -800,6 +835,7 @@
                 "timestamp": timeStamp
             };
 
+            terminatedStmt = add_registration_if_exists(terminatedStmt);
             //send completed statement to the LRS
             console.log("terminated statement sent");
             ADL.XAPIWrapper.sendStatement(terminatedStmt, function (resp, obj) {
@@ -874,7 +910,6 @@
                     }
                 },
                 "context": {
-                    "registration": registration,
                     "contextActivities": {
                         "category": [{
                             "id": "https://w3id.org/xapi/video"
@@ -888,6 +923,8 @@
                 },
                 "timestamp": timeStamp
             };
+
+            volChangeStmt = add_registration_if_exists(volChangeStmt);
             //send volume change statement to the LRS
             console.log("interacted statement (volume change) sent");
             ADL.XAPIWrapper.sendStatement(volChangeStmt, function (resp, obj) {
@@ -952,7 +989,6 @@
                         }
                     },
                     "context": {
-                        "registration": registration,
                         "contextActivities": {
                             "category": [{
                                 "id": "https://w3id.org/xapi/video"
@@ -968,6 +1004,8 @@
                     },
                     "timestamp": timeStamp
                 };
+
+                fullScreenTrueStmt = add_registration_if_exists(fullScreenTrueStmt);
                 //send full screen statement to the LRS
                 console.log("interacted statement (fullScreen true) sent");
                 ADL.XAPIWrapper.sendStatement(fullScreenTrueStmt, function (resp, obj) {
@@ -1022,7 +1060,6 @@
                         }
                     },
                     "context": {
-                        "registration": registration,
                         "contextActivities": {
                             "category": [{
                                 "id": "https://w3id.org/xapi/video"
@@ -1038,6 +1075,8 @@
                     },
                     "timestamp": timeStamp
                 };
+
+                fullScreenFalseStmt = add_registration_if_exists(fullScreenFalseStmt);
                 //send exit full screen statement to the LRS
                 console.log("interacted statement (fullscreen false) sent");
                 ADL.XAPIWrapper.sendStatement(fullScreenFalseStmt, function (resp, obj) {
