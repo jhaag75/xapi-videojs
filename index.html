@@ -46,6 +46,11 @@
         
         ADL.XAPIWrapper.changeConfig(conf);       
     }
+
+    // Force the player to use a specific IRI as the activity ID. 
+    // If not, the player uses the video source URL.
+    // var activityId = "http://here-is-my-video-activity-iri";
+
     // put into variables - title and description from the metadata DIV above the video element 
     var activityTitle = document.getElementById('vidtitle').getAttribute('content');
     var activityDesc = document.getElementById('viddesc').getAttribute('content');  
