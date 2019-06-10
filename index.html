@@ -30,7 +30,10 @@
 
 
 <script type="text/javascript">
-    
+
+    // This line limits the number of logs in your console...
+    ADL.XAPIWrapper.log.debug = false;
+
     // ADL LRS Configuration - Basic Auth for demo purposes  
     if(ADL.XAPIWrapper.lrs.auth == undefined) {
         var conf = {
