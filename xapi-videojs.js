@@ -335,8 +335,8 @@
 
                         // If it is showing then CC is enabled and determine the language
                         if (track.mode === 'showing') {
-                            var ccEnabled = true;
-                            var ccLanguage = track.language;
+                            ccEnabled = true;
+                            ccLanguage = track.language;
                         } 
                     }
 
