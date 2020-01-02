@@ -222,8 +222,8 @@
             // vet the video length
             var length = myPlayer.duration();
 
-            var ccEnabled = false;
-            var ccLanguage = "";
+            ccEnabled = false;
+            ccLanguage = "";
             
             //Enable Captions/Subtitles
             for (var i = 0; i < tracks.length; i++) {
@@ -231,8 +231,8 @@
 
                 // If it is showing then CC is enabled and determine the language
                 if (track.mode === 'showing') {
-                    var ccEnabled = true;
-                    var ccLanguage = track.language;
+                    ccEnabled = true;
+                    ccLanguage = track.language;
                 } 
             }
             // get user agent header string
