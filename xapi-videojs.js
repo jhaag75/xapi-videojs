@@ -7,7 +7,7 @@
 
         // Global Variables & common functions
         var myPlayer = videojs(target);
-        var objectID = typeof activityId !== 'undefined' ? activityId : myPlayer.currentSrc().toString();
+        var objectID = activityIri;
         var sessionID = ADL.ruuid();
         var skipPlayEvent = false;
         var sendCCSubtitle = false;
