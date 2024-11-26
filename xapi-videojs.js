@@ -57,10 +57,15 @@
         }
 
         function fixed_play_time(time) {
-            if (played_segments_segment_end == null || Math.abs(played_segments_segment_end - time) >= 1)
-                return time;
-            else
-                return played_segments_segment_end;
+	   if (played_segments_segment_end == null) {
+		return time;
+	   }
+	   var diff = time - played_segments_segment_end;
+	   if( diff <= 1 && diff > 0) {
+		return played_segments_segment_end;
+	    } else {
+		return time;
+	   }
         }
 
         function get_progress() {
